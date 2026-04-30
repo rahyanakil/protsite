@@ -1,7 +1,7 @@
 'use client'
 import Image from 'next/image'
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion'
 
 const projects = [
   {
@@ -23,7 +23,7 @@ const projects = [
     challenges: [
       'Integrating Stripe payment gateway with secure server-side validation and transaction handling.',
       'Implementing JWT authentication and RBAC for both admin and user roles simultaneously.',
-      'Designing MongoDB schemas optimized for booking workflows, review management, and query performance.',
+      'Designing MongoDB schemas optimized for booking workflows and query performance.',
     ],
     futureImprovements: [
       'Add a native mobile app using React Native.',
@@ -56,14 +56,14 @@ const projects = [
       'Service categorization and scheduling logic',
     ],
     challenges: [
-      'Designing database workflows that handle appointment conflicts and scheduling overlaps reliably.',
-      'Implementing email notification triggers that fire correctly across different booking states.',
-      'Building a flexible content management structure to support different service categories.',
+      'Designing database workflows that handle appointment conflicts reliably.',
+      'Implementing email notification triggers across different booking states.',
+      'Building a flexible content management structure for different service categories.',
     ],
     futureImprovements: [
       'Add a student portal with online fee payment integration.',
       'Implement SMS notifications alongside email alerts.',
-      'Build a dashboard for real-time appointment analytics for administrators.',
+      'Build a real-time appointment analytics dashboard for administrators.',
     ],
     liveLink: 'https://www.cambrian.edu.bd/',
     githubLink: 'https://github.com/rahyanakil',
@@ -80,7 +80,7 @@ const projects = [
     subtitle: 'Company Corporate Platform',
     coverImage: '/project3/1.jpg',
     description:
-      'A corporate platform for Hexing Electrical Company Limited featuring RESTful APIs for product and user management, Stripe payment integration, secure JWT authentication with RBAC, and a comprehensive admin dashboard for product lifecycle management.',
+      'A corporate platform for Hexing Electrical Company Limited featuring RESTful APIs for product and user management, Stripe payment integration, secure JWT authentication with RBAC, and a comprehensive admin dashboard.',
     techStack: ['Node.js', 'Express.js', 'MongoDB', 'React.js', 'Stripe API', 'Firebase Auth', 'JWT', 'Tailwind CSS'],
     features: [
       'RESTful APIs for product, booking & payment management',
@@ -144,62 +144,83 @@ const projects = [
   },
 ]
 
-function ProjectCard({ project, onOpen }) {
+function TiltCard({ children, className }) {
+  const x = useMotionValue(0)
+  const y = useMotionValue(0)
+  const rotateX = useSpring(useTransform(y, [-100, 100], [8, -8]), { stiffness: 100, damping: 20 })
+  const rotateY = useSpring(useTransform(x, [-100, 100], [-8, 8]), { stiffness: 100, damping: 20 })
+
+  const handleMouseMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    x.set(e.clientX - rect.left - rect.width / 2)
+    y.set(e.clientY - rect.top - rect.height / 2)
+  }
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 40 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.5 }}
-      whileHover={{ y: -6 }}
-      className="card overflow-hidden hover:border-accent/50 hover:shadow-xl hover:shadow-accent/5 transition-all duration-300 flex flex-col"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={() => { x.set(0); y.set(0) }}
+      style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+      className={className}
     >
-      {/* Cover image */}
-      <div className="relative h-52 overflow-hidden">
-        {project.coverImage.startsWith('http') ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={project.coverImage}
-            alt={project.title}
-            className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-          />
-        ) : (
-          <Image
-            src={project.coverImage}
-            alt={project.title}
-            fill
-            className="object-cover transition-transform duration-500 hover:scale-105"
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-        <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
-          {project.techStack.slice(0, 3).map((t) => (
-            <span key={t} className="text-xs px-2 py-0.5 bg-accent text-white rounded-full font-medium">
-              {t}
-            </span>
-          ))}
-          {project.techStack.length > 3 && (
-            <span className="text-xs px-2 py-0.5 bg-black/50 text-white rounded-full">
-              +{project.techStack.length - 3}
-            </span>
-          )}
-        </div>
-      </div>
+      {children}
+    </motion.div>
+  )
+}
 
-      {/* Content */}
-      <div className="p-5 flex flex-col flex-1">
-        <p className="text-xs text-accent font-medium uppercase tracking-wider mb-1">{project.subtitle}</p>
-        <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">{project.title}</h3>
-        <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-4 flex-1 line-clamp-3">
-          {project.description}
-        </p>
-        <button
-          onClick={() => onOpen(project)}
-          className="w-full py-2.5 border-2 border-accent text-accent rounded-xl font-semibold text-sm hover:bg-accent hover:text-white transition-all duration-200"
-        >
-          View Details
-        </button>
-      </div>
+const cardContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.15 } },
+}
+
+const cardItem = {
+  hidden: { opacity: 0, y: 60 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+}
+
+function ProjectCard({ project, onOpen }) {
+  return (
+    <motion.div variants={cardItem}>
+      <TiltCard className="card overflow-hidden hover:border-accent/50 hover:shadow-2xl hover:shadow-accent/10 transition-all duration-300 flex flex-col h-full" style={{ perspective: 1000 }}>
+        {/* Cover image */}
+        <div className="relative h-52 overflow-hidden">
+          {project.coverImage.startsWith('http') ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={project.coverImage} alt={project.title} className="w-full h-full object-cover transition-transform duration-700 hover:scale-110" />
+          ) : (
+            <Image src={project.coverImage} alt={project.title} fill className="object-cover transition-transform duration-700 hover:scale-110" />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+          <div className="absolute bottom-3 left-3 flex flex-wrap gap-1.5">
+            {project.techStack.slice(0, 3).map((t) => (
+              <span key={t} className="text-xs px-2 py-0.5 bg-accent text-white rounded-full font-medium backdrop-blur-sm">
+                {t}
+              </span>
+            ))}
+            {project.techStack.length > 3 && (
+              <span className="text-xs px-2 py-0.5 bg-black/50 text-white rounded-full backdrop-blur-sm">
+                +{project.techStack.length - 3}
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="p-5 flex flex-col flex-1">
+          <p className="text-xs text-accent font-medium uppercase tracking-wider mb-1">{project.subtitle}</p>
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-white mb-2">{project.title}</h3>
+          <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-4 flex-1 line-clamp-3">
+            {project.description}
+          </p>
+          <motion.button
+            onClick={() => onOpen(project)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            className="w-full py-2.5 border-2 border-accent text-accent rounded-xl font-semibold text-sm hover:bg-accent hover:text-white transition-all duration-200"
+          >
+            View Details
+          </motion.button>
+        </div>
+      </TiltCard>
     </motion.div>
   )
 }
@@ -215,14 +236,13 @@ function Modal({ project, onClose }) {
         className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
       >
         <motion.div
-          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          initial={{ opacity: 0, scale: 0.85, y: 40 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          transition={{ type: 'spring', damping: 20 }}
+          exit={{ opacity: 0, scale: 0.85, y: 40 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
           onClick={(e) => e.stopPropagation()}
           className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto"
         >
-          {/* Header image */}
           <div className="relative h-56 flex-shrink-0">
             {project.snapshots[0].startsWith('http') ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -231,12 +251,14 @@ function Modal({ project, onClose }) {
               <Image src={project.snapshots[0]} alt={project.title} fill className="object-cover rounded-t-2xl" />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent rounded-t-2xl" />
-            <button
+            <motion.button
               onClick={onClose}
+              whileHover={{ scale: 1.1, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
               className="absolute top-4 right-4 w-9 h-9 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors"
             >
               <i className="bx bx-x text-xl"></i>
-            </button>
+            </motion.button>
             <div className="absolute bottom-4 left-5">
               <p className="text-accent text-xs font-semibold uppercase tracking-wider">{project.subtitle}</p>
               <h2 className="text-2xl font-bold text-white">{project.title}</h2>
@@ -246,21 +268,28 @@ function Modal({ project, onClose }) {
           <div className="p-6 space-y-6">
             <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-sm">{project.description}</p>
 
-            {/* Tech Stack */}
             <div>
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
                 <i className="bx bx-code-alt text-accent text-lg"></i> Tech Stack
               </h3>
-              <div className="flex flex-wrap gap-2">
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+                className="flex flex-wrap gap-2"
+              >
                 {project.techStack.map((t) => (
-                  <span key={t} className="px-3 py-1 bg-accent/10 text-accent border border-accent/20 rounded-full text-xs font-semibold">
+                  <motion.span
+                    key={t}
+                    variants={{ hidden: { opacity: 0, scale: 0.5 }, visible: { opacity: 1, scale: 1 } }}
+                    className="px-3 py-1 bg-accent/10 text-accent border border-accent/20 rounded-full text-xs font-semibold"
+                  >
                     {t}
-                  </span>
+                  </motion.span>
                 ))}
-              </div>
+              </motion.div>
             </div>
 
-            {/* Features */}
             <div>
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
                 <i className="bx bx-list-check text-accent text-lg"></i> Key Features
@@ -275,7 +304,6 @@ function Modal({ project, onClose }) {
               </ul>
             </div>
 
-            {/* Challenges */}
             <div>
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
                 <i className="bx bx-target-lock text-accent text-lg"></i> Challenges Faced
@@ -290,7 +318,6 @@ function Modal({ project, onClose }) {
               </ul>
             </div>
 
-            {/* Future Improvements */}
             <div>
               <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider mb-3 flex items-center gap-2">
                 <i className="bx bx-rocket text-accent text-lg"></i> Future Improvements
@@ -305,39 +332,43 @@ function Modal({ project, onClose }) {
               </ul>
             </div>
 
-            {/* Links */}
             <div className="flex gap-3 pt-2">
-              <a
+              <motion.a
                 href={project.liveLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-accent text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-accent text-white rounded-xl font-semibold text-sm"
               >
-                <i className="bx bx-link-external text-base"></i>
-                Live Site
-              </a>
-              <a
+                <i className="bx bx-link-external text-base"></i> Live Site
+              </motion.a>
+              <motion.a
                 href={project.githubLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-900 dark:bg-zinc-700 text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-900 dark:bg-zinc-700 text-white rounded-xl font-semibold text-sm"
               >
-                <i className="bx bxl-github text-base"></i>
-                GitHub (Client)
-              </a>
+                <i className="bx bxl-github text-base"></i> GitHub (Client)
+              </motion.a>
             </div>
 
-            {/* Screenshots */}
             <div>
-              <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider mb-3">
-                Screenshots
-              </h3>
+              <h3 className="text-sm font-bold text-zinc-900 dark:text-white uppercase tracking-wider mb-3">Screenshots</h3>
               <div className="grid grid-cols-2 gap-3">
                 {project.snapshots.map((src, i) => (
-                  <div key={i} className="relative h-36 rounded-xl overflow-hidden">
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: i * 0.08 }}
+                    className="relative h-36 rounded-xl overflow-hidden"
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
-                  </div>
+                    <img src={src} alt={`Screenshot ${i + 1}`} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500" />
+                  </motion.div>
                 ))}
               </div>
             </div>
@@ -362,14 +393,28 @@ export default function Projects() {
           className="text-center mb-14"
         >
           <h2 className="text-3xl sm:text-4xl font-bold gradient-text inline-block mb-2">Projects</h2>
+          <motion.div
+            initial={{ width: 0 }}
+            whileInView={{ width: '60px' }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="h-1 bg-accent rounded-full mx-auto mt-2 mb-3"
+          />
           <p className="text-zinc-500 dark:text-zinc-400 text-sm">Explore my works</p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 gap-6">
+        <motion.div
+          variants={cardContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          className="grid sm:grid-cols-2 gap-6"
+          style={{ perspective: 1000 }}
+        >
           {projects.map((project) => (
             <ProjectCard key={project.id} project={project} onOpen={setSelected} />
           ))}
-        </div>
+        </motion.div>
       </div>
 
       {selected && <Modal project={selected} onClose={() => setSelected(null)} />}

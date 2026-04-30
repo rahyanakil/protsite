@@ -1,6 +1,6 @@
 'use client'
 import { useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import emailjs from '@emailjs/browser'
 
 const contactCards = [
@@ -34,14 +34,24 @@ const contactCards = [
   },
 ]
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 40 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+const cardContainer = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } },
+}
+
+const cardItem = {
+  hidden: { opacity: 0, y: 30, scale: 0.9 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 150, damping: 15 } },
+}
+
+const formVariants = {
+  hidden: { opacity: 0, x: 40 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: 'easeOut' } },
 }
 
 export default function Contact() {
   const form = useRef()
-  const [status, setStatus] = useState(null) // null | 'sending' | 'success' | 'error'
+  const [status, setStatus] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
 
   const sendEmail = (e) => {
@@ -66,55 +76,75 @@ export default function Contact() {
     <section id="contact" className="section-padding">
       <div className="container-custom">
         <motion.div
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="visible"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
           className="text-center mb-14"
         >
-          <h2 className="text-3xl sm:text-4xl font-bold gradient-text inline-block mb-2">
-            Get In Touch
-          </h2>
+          <h2 className="text-3xl sm:text-4xl font-bold gradient-text inline-block mb-2">Get In Touch</h2>
+          <motion.div
+            initial={{ width: 0 }}
+            whileInView={{ width: '60px' }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="h-1 bg-accent rounded-full mx-auto mt-2 mb-3"
+          />
           <p className="text-zinc-500 dark:text-zinc-400 text-sm">Contact Me</p>
         </motion.div>
 
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Contact cards */}
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-6">Talk to me</h3>
-            <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <motion.h3
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+              className="text-xl font-bold text-zinc-900 dark:text-white mb-6"
+            >
+              Talk to me
+            </motion.h3>
+            <motion.div
+              variants={cardContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="grid sm:grid-cols-2 gap-4"
+            >
               {contactCards.map(({ icon, title, value, href, cta }) => (
-                <div
+                <motion.div
                   key={title}
-                  className="card p-5 hover:border-accent/40 hover:shadow-lg hover:shadow-accent/5 transition-all duration-300"
+                  variants={cardItem}
+                  whileHover={{ y: -4, borderColor: 'rgba(249,20,96,0.5)', boxShadow: '0 10px 30px rgba(249,20,96,0.08)' }}
+                  className="card p-5 transition-all duration-300 cursor-default"
                 >
-                  <div className="w-11 h-11 rounded-full bg-accent/10 flex items-center justify-center mb-3">
+                  <motion.div
+                    whileHover={{ rotate: [0, -10, 10, 0], scale: 1.1 }}
+                    transition={{ duration: 0.4 }}
+                    className="w-11 h-11 rounded-full bg-accent/10 flex items-center justify-center mb-3"
+                  >
                     <i className={`bx ${icon} text-xl text-accent`}></i>
-                  </div>
+                  </motion.div>
                   <h4 className="font-bold text-zinc-900 dark:text-white text-sm mb-1">{title}</h4>
                   <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3 break-all">{value}</p>
                   <a
                     href={href}
                     target={href.startsWith('http') ? '_blank' : undefined}
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-accent hover:gap-2 transition-all"
                   >
                     {cta}
                     <i className="bx bx-right-arrow-alt text-sm"></i>
                   </a>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
 
           {/* Form */}
           <motion.div
-            variants={fadeUp}
+            variants={formVariants}
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true }}
@@ -123,34 +153,35 @@ export default function Contact() {
               Write me your project details
             </h3>
             <form ref={form} onSubmit={sendEmail} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  required
-                  placeholder="Your name"
-                  className="w-full px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white placeholder:text-zinc-400 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  required
-                  placeholder="your@email.com"
-                  className="w-full px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white placeholder:text-zinc-400 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                  Project Details
-                </label>
+              {[
+                { label: 'Name', name: 'name', type: 'text', placeholder: 'Your name' },
+                { label: 'Email', name: 'email', type: 'email', placeholder: 'your@email.com' },
+              ].map(({ label, name, type, placeholder }, i) => (
+                <motion.div
+                  key={name}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 + 0.3 }}
+                >
+                  <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">{label}</label>
+                  <input
+                    type={type}
+                    name={name}
+                    required
+                    placeholder={placeholder}
+                    className="w-full px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white placeholder:text-zinc-400 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors"
+                  />
+                </motion.div>
+              ))}
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5 }}
+              >
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">Project Details</label>
                 <textarea
                   name="project"
                   required
@@ -158,30 +189,48 @@ export default function Contact() {
                   placeholder="Tell me about your project..."
                   className="w-full px-4 py-3 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-zinc-900 dark:text-white placeholder:text-zinc-400 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-colors resize-none"
                 />
-              </div>
+              </motion.div>
 
-              {/* Status message */}
-              {status === 'success' && (
-                <p className="text-sm text-green-500 flex items-center gap-2">
-                  <i className="bx bx-check-circle text-lg"></i>
-                  Message sent successfully!
-                </p>
-              )}
-              {status === 'error' && (
-                <p className="text-sm text-red-500 flex items-start gap-2">
-                  <i className="bx bx-error-circle text-lg flex-shrink-0 mt-0.5"></i>
-                  <span>Failed to send. {errorMsg && <span className="font-mono text-xs">({errorMsg})</span>} Check browser console for details.</span>
-                </p>
-              )}
+              {/* Status messages */}
+              <AnimatePresence>
+                {status === 'success' && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm text-green-500 flex items-center gap-2"
+                  >
+                    <i className="bx bx-check-circle text-lg"></i>
+                    Message sent successfully!
+                  </motion.p>
+                )}
+                {status === 'error' && (
+                  <motion.p
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    className="text-sm text-red-500 flex items-start gap-2"
+                  >
+                    <i className="bx bx-error-circle text-lg flex-shrink-0 mt-0.5"></i>
+                    <span>Failed to send. {errorMsg && <span className="font-mono text-xs">({errorMsg})</span>}</span>
+                  </motion.p>
+                )}
+              </AnimatePresence>
 
-              <button
+              <motion.button
                 type="submit"
                 disabled={status === 'sending'}
-                className="w-full flex items-center justify-center gap-2 py-3.5 bg-accent text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-60 shadow-lg shadow-accent/25"
+                whileHover={{ scale: status === 'sending' ? 1 : 1.02 }}
+                whileTap={{ scale: status === 'sending' ? 1 : 0.97 }}
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-accent text-white rounded-xl font-semibold text-sm disabled:opacity-60 shadow-lg shadow-accent/25 transition-opacity"
               >
                 {status === 'sending' ? (
                   <>
-                    <i className="bx bx-loader-alt animate-spin text-lg"></i>
+                    <motion.i
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      className="bx bx-loader-alt text-lg"
+                    ></motion.i>
                     Sending...
                   </>
                 ) : (
@@ -190,7 +239,7 @@ export default function Contact() {
                     Send Message
                   </>
                 )}
-              </button>
+              </motion.button>
             </form>
           </motion.div>
         </div>
