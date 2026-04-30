@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: auto; /* Lenis handles smooth scrolling */
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  ::selection {
+    background-color: #f91460;
+    color: #fff;
+  }
+
+  body {
+    @apply antialiased;
+  }
+}
+
+@layer utilities {
+  .gradient-text {
+    background: linear-gradient(135deg, #f91460 0%, #80032d 50%, #17032c 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .gradient-text-animated {
+    background: linear-gradient(
+      -225deg,
+      #f91460 0%,
+      #80032d 29%,
+      #17032c 67%,
+      #f91460 100%
+    );
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 4s linear infinite;
+  }
+
+  .card {
+    @apply bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl;
+  }
+
+  .section-padding {
+    @apply py-20 px-4 sm:px-6 lg:px-8;
+  }
+
+  .container-custom {
+    @apply max-w-6xl mx-auto;
+  }
+}
+
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-zinc-100 dark:bg-zinc-900;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-zinc-400 dark:bg-zinc-600 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f91460;
+}

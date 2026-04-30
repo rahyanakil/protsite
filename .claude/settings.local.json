@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"D:\\\\Projects\\\\protsite\\\\src\\\\assets\" -Recurse | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"D:\\\\Projects\\\\protsite\\\\src\\\\assets\\\\\", \"\"\\) })",
+      "PowerShell(Get-ChildItem \"D:\\\\Projects\\\\protsite\\\\public\" -Recurse | Where-Object { -not $_.PSIsContainer } | Select-Object -ExpandProperty FullName | ForEach-Object { $_.Replace\\(\"D:\\\\Projects\\\\protsite\\\\public\\\\\",\"\"\\) } | Select-Object -First 20)",
+      "PowerShell(Get-Process *)"
+    ]
+  }
+}
