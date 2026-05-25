@@ -6,6 +6,10 @@ html {
   scroll-behavior: auto; /* Lenis handles smooth scrolling */
 }
 
+html, body {
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
 @layer base {
   * {
     box-sizing: border-box;
@@ -61,9 +65,7 @@ html {
 }
 
 @keyframes shine {
-  to {
-    background-position: 200% center;
-  }
+  to { background-position: 200% center; }
 }
 
 @keyframes float {
@@ -71,8 +73,31 @@ html {
   50% { transform: translateY(-12px); }
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+@keyframes blob {
+  0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+  50% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+}
+
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-blob  { animation: blob 8s ease-in-out infinite; }
+
+/* Glass card */
+.glass {
+  @apply bg-white/5 backdrop-blur-md border border-white/10;
+}
+
+/* Noise texture overlay — apply to a sibling/child, pointer-events-none */
+.noise-overlay {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  opacity: 0.035;
+  pointer-events: none;
+}
+
+/* Focus ring for accessibility */
+:focus-visible {
+  outline: 2px solid #f91460;
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 /* Scrollbar */

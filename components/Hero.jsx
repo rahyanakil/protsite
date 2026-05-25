@@ -1,6 +1,51 @@
 'use client'
 import Image from 'next/image'
+import { useState, useEffect } from 'react'
 import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
+
+const ROLES = [
+  'Full-Stack Developer',
+  'Next.js Engineer',
+  'MERN Stack Expert',
+  'UI/UX Focused Dev',
+]
+
+function useTypewriter(words) {
+  const [display, setDisplay] = useState('')
+  const [wordIdx, setWordIdx] = useState(0)
+  const [deleting, setDeleting] = useState(false)
+  const [blink, setBlink] = useState(true)
+
+  useEffect(() => {
+    const word = words[wordIdx % words.length]
+    let timeout
+
+    if (deleting) {
+      if (display.length === 0) {
+        setDeleting(false)
+        setWordIdx(i => i + 1)
+        timeout = setTimeout(() => {}, 400)
+      } else {
+        timeout = setTimeout(() => setDisplay(d => d.slice(0, -1)), 45)
+      }
+    } else {
+      if (display === word) {
+        timeout = setTimeout(() => setDeleting(true), 1800)
+      } else {
+        timeout = setTimeout(() => setDisplay(word.slice(0, display.length + 1)), 80)
+      }
+    }
+
+    return () => clearTimeout(timeout)
+  }, [display, deleting, wordIdx, words])
+
+  useEffect(() => {
+    const id = setInterval(() => setBlink(b => !b), 530)
+    return () => clearInterval(id)
+  }, [])
+
+  return { display, blink }
+}
 
 const socialLinks = [
   { href: 'https://github.com/rahyanakil', icon: 'uil-github-alt', label: 'GitHub' },
@@ -73,7 +118,7 @@ function FloatingImage() {
         <motion.div
           animate={{ y: [0, -10, 0] }}
           transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-          className="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96 animate-blob overflow-hidden border-4 border-accent/30"
+          className="relative w-64 h-64 sm:w-80 sm:h-80 lg:w-96 lg:h-96 overflow-hidden border-4 border-accent/30 rounded-full"
         >
           <Image src="/profile2.jpg" alt="Rahyan Shamsi Akil" fill className="object-cover" priority />
         </motion.div>
@@ -83,24 +128,39 @@ function FloatingImage() {
 }
 
 export default function Hero() {
+  const { display, blink } = useTypewriter(ROLES)
+
   return (
     <section id="home" className="relative min-h-screen flex items-center overflow-hidden pt-16">
+      {/* Noise overlay */}
+      <div
+        className="absolute inset-0 -z-10 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E")`,
+        }}
+      />
+
       {/* Animated background blobs */}
       <div className="absolute inset-0 -z-10">
         <motion.div
           animate={{ x: [0, 30, 0], y: [0, -20, 0] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-          className="absolute top-1/4 -left-20 w-96 h-96 bg-accent/10 rounded-full blur-3xl"
+          className="absolute top-1/4 -left-20 w-96 h-96 bg-accent/15 rounded-full blur-3xl"
         />
         <motion.div
           animate={{ x: [0, -30, 0], y: [0, 20, 0] }}
           transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-          className="absolute bottom-1/4 -right-20 w-80 h-80 bg-accent-dark/10 rounded-full blur-3xl"
+          className="absolute bottom-1/4 -right-20 w-80 h-80 bg-accent-dark/15 rounded-full blur-3xl"
         />
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
           transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-purple-500/5 rounded-full blur-3xl"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 bg-purple-500/8 rounded-full blur-3xl"
+        />
+        <motion.div
+          animate={{ x: [0, 20, 0], y: [0, 30, 0] }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut', delay: 3 }}
+          className="absolute top-10 right-1/4 w-64 h-64 bg-pink-500/8 rounded-full blur-3xl"
         />
       </div>
 
@@ -108,6 +168,21 @@ export default function Hero() {
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* Text Content */}
           <motion.div variants={container} initial="hidden" animate="visible" className="order-2 md:order-1">
+
+            {/* Open to Work badge */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-500 text-xs font-semibold mb-5"
+            >
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
+              </span>
+              Open to Work
+            </motion.div>
+
             {/* Social links */}
             <motion.div variants={socialContainer} initial="hidden" animate="visible" className="flex gap-3 mb-6">
               {socialLinks.map(({ href, icon, label }) => (
@@ -137,8 +212,12 @@ export default function Hero() {
               <span className="text-zinc-900 dark:text-white">Akil</span>
             </motion.h1>
 
-            <motion.h2 variants={fadeUp} className="text-xl sm:text-2xl font-semibold text-zinc-600 dark:text-zinc-400 mb-5">
-              MERN Stack Developer
+            {/* Typewriter role */}
+            <motion.h2 variants={fadeUp} className="text-xl sm:text-2xl font-semibold text-zinc-600 dark:text-zinc-400 mb-5 min-h-[2rem]">
+              {display}
+              <span
+                className={`inline-block w-0.5 h-5 bg-accent ml-0.5 align-middle transition-opacity duration-100 ${blink ? 'opacity-100' : 'opacity-0'}`}
+              />
             </motion.h2>
 
             <motion.p variants={fadeUp} className="text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-lg mb-8">

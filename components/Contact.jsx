@@ -1,7 +1,57 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import emailjs from '@emailjs/browser'
+
+const CONFETTI_COLORS = ['#f91460', '#80032d', '#fbbf24', '#34d399', '#60a5fa', '#a78bfa']
+
+function useConfetti() {
+  const canvasRef = useRef(null)
+  const rafRef = useRef(null)
+
+  const fire = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+
+    const particles = Array.from({ length: 120 }, () => ({
+      x: Math.random() * canvas.width,
+      y: -10 - Math.random() * 60,
+      vx: (Math.random() - 0.5) * 6,
+      vy: Math.random() * 4 + 2,
+      size: Math.random() * 8 + 3,
+      color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      rotation: Math.random() * 360,
+      rotSpeed: (Math.random() - 0.5) * 7,
+      gravity: 0.1,
+    }))
+
+    cancelAnimationFrame(rafRef.current)
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      let alive = false
+      particles.forEach(p => {
+        p.vy += p.gravity
+        p.x += p.vx; p.y += p.vy; p.rotation += p.rotSpeed
+        if (p.y < canvas.height + 20) alive = true
+        ctx.save()
+        ctx.translate(p.x, p.y)
+        ctx.rotate((p.rotation * Math.PI) / 180)
+        ctx.fillStyle = p.color
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6)
+        ctx.restore()
+      })
+      if (alive) rafRef.current = requestAnimationFrame(draw)
+    }
+    draw()
+  }, [])
+
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), [])
+
+  return { canvasRef, fire }
+}
 
 const contactCards = [
   {
@@ -53,6 +103,8 @@ export default function Contact() {
   const form = useRef()
   const [status, setStatus] = useState(null)
   const [errorMsg, setErrorMsg] = useState('')
+  const [copied, setCopied] = useState(false)
+  const { canvasRef, fire } = useConfetti()
 
   const sendEmail = (e) => {
     e.preventDefault()
@@ -61,6 +113,7 @@ export default function Contact() {
       .sendForm('service_5597sd8', 'template_z41agyl', form.current, 'kkhB4tPMlADsGDhrb')
       .then(() => {
         setStatus('success')
+        fire()
         e.target.reset()
         setTimeout(() => setStatus(null), 5000)
       })
@@ -73,6 +126,8 @@ export default function Contact() {
   }
 
   return (
+    <>
+    <canvas ref={canvasRef} className="fixed inset-0 z-[9996] pointer-events-none" />
     <section id="contact" className="section-padding">
       <div className="container-custom">
         <motion.div
@@ -127,7 +182,20 @@ export default function Contact() {
                     <i className={`bx ${icon} text-xl text-accent`}></i>
                   </motion.div>
                   <h4 className="font-bold text-zinc-900 dark:text-white text-sm mb-1">{title}</h4>
-                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3 break-all">{value}</p>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-1 break-all">{value}</p>
+                  {title === 'Email' && (
+                    <button
+                      onClick={() => {
+                        navigator.clipboard?.writeText('rahyanakil89@gmail.com')
+                        setCopied(true)
+                        setTimeout(() => setCopied(false), 2000)
+                      }}
+                      className="mt-1 mb-2 inline-flex items-center gap-1 text-xs text-zinc-400 hover:text-accent transition-colors"
+                    >
+                      <i className={`bx ${copied ? 'bx-check text-green-500' : 'bx-copy'} text-sm`} />
+                      <span className={copied ? 'text-green-500' : ''}>{copied ? 'Copied!' : 'Copy'}</span>
+                    </button>
+                  )}
                   <a
                     href={href}
                     target={href.startsWith('http') ? '_blank' : undefined}
@@ -243,7 +311,36 @@ export default function Contact() {
             </form>
           </motion.div>
         </div>
+
+        {/* Booking card */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="mt-12 card p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 text-center sm:text-left"
+        >
+          <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center flex-shrink-0">
+            <i className="bx bx-calendar-event text-2xl text-accent" />
+          </div>
+          <div className="flex-1">
+            <h3 className="font-bold text-zinc-900 dark:text-white text-lg mb-1">
+              Prefer a call? Schedule one.
+            </h3>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+              Book a free 30-minute intro call — no commitment, just a conversation about your project or role.
+            </p>
+          </div>
+          <a
+            href="mailto:rahyanakil89@gmail.com?subject=Let%27s%20schedule%20a%20call"
+            className="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 bg-accent text-white rounded-full font-semibold text-sm shadow-lg shadow-accent/25 hover:shadow-accent/40 transition-shadow whitespace-nowrap"
+          >
+            <i className="bx bx-calendar-check text-base" />
+            Book a Call
+          </a>
+        </motion.div>
       </div>
     </section>
+    </>
   )
 }

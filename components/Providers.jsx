@@ -1,12 +1,16 @@
 'use client'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
 
 const ThemeContext = createContext({ theme: 'dark', toggleTheme: () => {} })
 export const useTheme = () => useContext(ThemeContext)
 
+const LenisContext = createContext(null)
+export const useLenis = () => useContext(LenisContext)
+
 export default function Providers({ children }) {
   const [theme, setTheme] = useState('dark')
+  const lenisRef = useRef(null)
 
   useEffect(() => {
     const saved = localStorage.getItem('theme')
@@ -28,19 +32,27 @@ export default function Providers({ children }) {
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
     })
+    lenisRef.current = lenis
 
+    let rafId
     function raf(time) {
       lenis.raf(time)
-      requestAnimationFrame(raf)
+      rafId = requestAnimationFrame(raf)
     }
+    rafId = requestAnimationFrame(raf)
 
-    requestAnimationFrame(raf)
-    return () => lenis.destroy()
+    return () => {
+      cancelAnimationFrame(rafId)
+      lenis.destroy()
+      lenisRef.current = null
+    }
   }, [])
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      {children}
-    </ThemeContext.Provider>
+    <LenisContext.Provider value={lenisRef}>
+      <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        {children}
+      </ThemeContext.Provider>
+    </LenisContext.Provider>
   )
 }

@@ -9,11 +9,57 @@ const poppins = Poppins({
   display: 'swap',
 })
 
+const BASE_URL = 'https://rahyanakil.vercel.app'
+
 export const metadata = {
-  title: "Rahyan's Portfolio | MERN Stack Developer",
+  metadataBase: new URL(BASE_URL),
+  title: {
+    default: "Rahyan Akil | Full-Stack Developer",
+    template: "%s | Rahyan Akil",
+  },
   description:
-    'Personal portfolio of Rahyan Shamsi Akil — MERN Stack Developer specializing in React, Node.js, Express, and MongoDB.',
-  icons: { icon: '/favicon.ico' },
+    'Portfolio of Rahyan Shamsi Akil — Full-Stack Developer specialising in Next.js, React, Node.js, TypeScript, and modern web technologies. Open to work.',
+  keywords: [
+    'Rahyan Akil', 'Full Stack Developer', 'MERN Stack', 'Next.js Developer',
+    'React Developer', 'Node.js', 'TypeScript', 'Bangladesh Developer',
+    'Web Developer Portfolio', 'Hire Developer',
+  ],
+  authors: [{ name: 'Rahyan Shamsi Akil', url: BASE_URL }],
+  creator: 'Rahyan Shamsi Akil',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: BASE_URL,
+    siteName: 'Rahyan Akil — Portfolio',
+    title: 'Rahyan Akil | Full-Stack Developer',
+    description:
+      'Full-Stack Developer specialising in Next.js, React, Node.js & TypeScript. Building fast, beautiful web applications. Open to work.',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'Rahyan Akil — Full-Stack Developer Portfolio',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Rahyan Akil | Full-Stack Developer',
+    description: 'Full-Stack Developer — Next.js, React, Node.js, TypeScript. Open to work.',
+    creator: '@Rahyan_Akil4',
+    images: ['/og-image.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, 'max-image-preview': 'large' },
+  },
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-touch-icon.png',
+  },
+  manifest: '/site.webmanifest',
 }
 
 export default function RootLayout({ children }) {
