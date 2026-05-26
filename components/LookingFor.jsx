@@ -1,6 +1,67 @@
 'use client'
 import { motion } from 'framer-motion'
 
+const KEYWORDS = new Set(['const', 'export', 'default', 'true', 'false'])
+
+function tokenizeLine(line) {
+  const tokens = []
+  let pos = 0
+  while (pos < line.length) {
+    // Comment: // … rest of line
+    if (line[pos] === '/' && line[pos + 1] === '/') {
+      tokens.push({ text: line.slice(pos), color: '#71717a' })
+      break
+    }
+    // String literal: "…"
+    if (line[pos] === '"') {
+      let end = pos + 1
+      while (end < line.length && line[end] !== '"') end++
+      if (end < line.length) end++
+      tokens.push({ text: line.slice(pos, end), color: '#34d399' })
+      pos = end
+      continue
+    }
+    // Identifier or keyword
+    if (/[a-zA-Z_$]/.test(line[pos])) {
+      let end = pos
+      while (end < line.length && /[\w$]/.test(line[end])) end++
+      const word = line.slice(pos, end)
+      const rest  = line.slice(end).trimStart()
+      if (KEYWORDS.has(word)) {
+        tokens.push({ text: word, color: '#a78bfa' })
+      } else if (rest[0] === ':') {
+        tokens.push({ text: word, color: '#60a5fa' })
+      } else {
+        tokens.push({ text: word, color: null })
+      }
+      pos = end
+      continue
+    }
+    // Fallback: single character
+    const last = tokens[tokens.length - 1]
+    if (last && last.color === null) {
+      last.text += line[pos]
+    } else {
+      tokens.push({ text: line[pos], color: null })
+    }
+    pos++
+  }
+  return tokens
+}
+
+function CodeLine({ line }) {
+  const tokens = tokenizeLine(line)
+  return (
+    <>
+      {tokens.map((tok, i) =>
+        tok.color
+          ? <span key={i} style={{ color: tok.color }}>{tok.text}</span>
+          : <span key={i}>{tok.text}</span>
+      )}
+    </>
+  )
+}
+
 const items = [
   {
     icon: 'bx-briefcase',
@@ -47,7 +108,7 @@ const rahyan = {
 
 export default rahyan`
 
-const codeTokens = CODE.split('\n').map((line) => line)
+const codeTokens = CODE.split('\n')
 
 export default function LookingFor() {
   return (
@@ -121,19 +182,9 @@ export default function LookingFor() {
                     <span className="select-none text-zinc-400 dark:text-zinc-600 w-6 text-right mr-4 flex-shrink-0">
                       {i + 1}
                     </span>
-                    <span
-                      className="text-zinc-700 dark:text-zinc-300"
-                      dangerouslySetInnerHTML={{
-                        __html: line
-                          .replace(/&/g, '&amp;')
-                          .replace(/</g, '&lt;')
-                          .replace(/>/g, '&gt;')
-                          .replace(/(\/\/.*$)/g, '<span style="color:#71717a">$1</span>')
-                          .replace(/\b(const|export|default|true)\b/g, '<span style="color:#a78bfa">$1</span>')
-                          .replace(/"([^"]*)"/g, '<span style="color:#34d399">"$1"</span>')
-                          .replace(/\b(role|experience|stack|traits|available)\b(?=:)/g, '<span style="color:#60a5fa">$1</span>'),
-                      }}
-                    />
+                    <span className="text-zinc-700 dark:text-zinc-300">
+                      <CodeLine line={line} />
+                    </span>
                   </div>
                 ))}
               </pre>

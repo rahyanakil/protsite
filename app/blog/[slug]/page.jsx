@@ -8,7 +8,8 @@ export async function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }) {
-  const post = await getPost(params.slug)
+  const { slug } = await params
+  const post = await getPost(slug)
   if (!post) return {}
   return {
     title: post.frontmatter.title,
@@ -32,7 +33,8 @@ function formatDate(dateStr) {
 }
 
 export default async function BlogPost({ params }) {
-  const post = await getPost(params.slug)
+  const { slug } = await params
+  const post = await getPost(slug)
   if (!post) notFound()
 
   const { frontmatter, html } = post

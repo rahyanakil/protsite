@@ -1,4 +1,5 @@
 import { Poppins } from 'next/font/google'
+import Script from 'next/script'
 import './globals.css'
 import Providers from '@/components/Providers'
 import { Analytics } from '@vercel/analytics/react'
@@ -76,7 +77,9 @@ export default function RootLayout({ children }) {
           href="https://unicons.iconscout.com/release/v4.0.8/css/line.css"
         />
         {/* Prevent flash of wrong theme */}
-        <script
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.classList.toggle('dark',t==='dark');})()`,
           }}

@@ -1,0 +1,175 @@
+---
+title: "3D Tilt Cards and Cursor Spotlights with Framer Motion Spring Physics"
+date: "2025-06-01"
+description: "How to build hardware-accelerated 3D tilt cards with a cursor-tracking radial gradient spotlight using Framer Motion's useMotionValue, useSpring, and useMotionTemplate — without a single CSS transition."
+tags: ["React", "Next.js", "TypeScript"]
+readTime: "6 min read"
+---
+
+Most "3D card tilt" tutorials use CSS `transform` on `mousemove` and call it done. The problem is that CSS transitions are fixed-duration — they don't feel physical. Move your mouse fast and the card snaps. Move it slow and it lags behind. Neither feels like real mass.
+
+Framer Motion's spring physics solves this. A spring has stiffness and damping, not duration. The card response adapts to how fast you move — slow moves produce gentle tilts, fast flicks produce a satisfying snap and settle. This post covers how to build the effect correctly, including the cursor spotlight that makes it feel polished.
+
+## The Spring Tilt
+
+The core is four hooks chained together:
+
+```tsx
+const mouseX = useMotionValue(0.5)
+const mouseY = useMotionValue(0.5)
+
+const rotateX = useSpring(
+  useTransform(mouseY, [0, 1], [6, -6]),
+  { stiffness: 120, damping: 22 }
+)
+const rotateY = useSpring(
+  useTransform(mouseX, [0, 1], [-6, 6]),
+  { stiffness: 120, damping: 22 }
+)
+```
+
+`useMotionValue` holds the normalized cursor position (0–1 within the card bounds). `useTransform` maps that to a rotation range (±6°). `useSpring` wraps the transform so the rotation chases the target with spring physics instead of snapping.
+
+The `mousemove` handler normalises cursor position relative to the card:
+
+```tsx
+const handleMouseMove = (e: React.MouseEvent) => {
+  const rect = cardRef.current?.getBoundingClientRect()
+  if (!rect) return
+  mouseX.set((e.clientX - rect.left) / rect.width)
+  mouseY.set((e.clientY - rect.top) / rect.height)
+}
+
+const handleMouseLeave = () => {
+  mouseX.set(0.5)
+  mouseY.set(0.5)
+}
+```
+
+Setting to `0.5` on leave puts rotateX and rotateY back to 0 — the card springs back to flat.
+
+The JSX needs `perspective` on the outer wrapper and `preserve-3d` on the inner element. Without perspective, the 3D transform renders flat:
+
+```tsx
+<div
+  ref={cardRef}
+  onMouseMove={handleMouseMove}
+  onMouseLeave={handleMouseLeave}
+  style={{ perspective: '1000px' }}
+>
+  <motion.div style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}>
+    {/* card content */}
+  </motion.div>
+</div>
+```
+
+### Tuning the spring
+
+`stiffness: 120, damping: 22` is the sweet spot for a card tilt that feels responsive but not jittery. Lower stiffness (< 80) makes the card feel like it's floating in honey. Higher damping (> 30) kills the spring character and it starts behaving like a CSS transition again. For a snappier feel on hover-exit, you can set different springs for entry and exit using `useSpring`'s `restDelta` option.
+
+## The Cursor Spotlight
+
+The spotlight is a `radial-gradient` centered on the cursor that follows it in real time. The challenge: CSS `background` is a string, not an animatable value. You cannot interpolate it with a standard `useTransform`.
+
+`useMotionTemplate` solves this. It creates a `MotionValue<string>` by composing other motion values into a template literal:
+
+```tsx
+const spotXPct = useTransform(mouseX, [0, 1], [0, 100])
+const spotYPct = useTransform(mouseY, [0, 1], [0, 100])
+const spotX = useMotionTemplate`${spotXPct}%`
+const spotY = useMotionTemplate`${spotYPct}%`
+
+const spotlight = useMotionTemplate`
+  radial-gradient(280px circle at ${spotX} ${spotY},
+    rgba(249,20,96,0.08),
+    transparent 70%)
+`
+```
+
+Apply it as an inline style on a `motion.div` overlay that covers the card:
+
+```tsx
+<motion.div
+  className="absolute inset-0 rounded-2xl pointer-events-none"
+  style={{ background: spotlight }}
+/>
+```
+
+Because `useMotionTemplate` produces a `MotionValue`, Framer Motion updates the DOM directly via a `style` mutation — no React re-render on every mouse move. This is why it stays smooth at 60fps even on a slow device.
+
+## Why not just use CSS variables?
+
+A common alternative is updating a CSS custom property on `mousemove`:
+
+```js
+card.style.setProperty('--x', `${x}%`)
+card.style.setProperty('--y', `${y}%`)
+```
+
+This works and is fast, but you lose the spring physics on the rotation and the composability with Framer Motion's animation system. If you want the card to snap back with a spring, or animate in/out with `AnimatePresence`, the `useMotionValue` approach integrates cleanly. The CSS variable approach requires you to manage the reset manually.
+
+## Putting it together
+
+```tsx
+function ProjectCard({ project }: { project: Project }) {
+  const cardRef = useRef<HTMLDivElement>(null)
+  const mouseX  = useMotionValue(0.5)
+  const mouseY  = useMotionValue(0.5)
+
+  const rotateX  = useSpring(useTransform(mouseY, [0,1], [5,-5]),  { stiffness: 120, damping: 22 })
+  const rotateY  = useSpring(useTransform(mouseX, [0,1], [-5, 5]), { stiffness: 120, damping: 22 })
+
+  const spotXPct  = useTransform(mouseX, [0,1], [0,100])
+  const spotYPct  = useTransform(mouseY, [0,1], [0,100])
+  const spotX     = useMotionTemplate`${spotXPct}%`
+  const spotY     = useMotionTemplate`${spotYPct}%`
+  const spotlight = useMotionTemplate`radial-gradient(280px circle at ${spotX} ${spotY}, rgba(249,20,96,0.08), transparent 70%)`
+
+  return (
+    <div
+      ref={cardRef}
+      style={{ perspective: '1000px' }}
+      onMouseMove={(e) => {
+        const r = cardRef.current!.getBoundingClientRect()
+        mouseX.set((e.clientX - r.left) / r.width)
+        mouseY.set((e.clientY - r.top)  / r.height)
+      }}
+      onMouseLeave={() => { mouseX.set(0.5); mouseY.set(0.5) }}
+    >
+      <motion.div
+        style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+        className="relative rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+      >
+        {/* Cursor spotlight overlay */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none z-10"
+          style={{ background: spotlight }}
+        />
+
+        {/* Card content */}
+        <div className="p-5">{project.title}</div>
+      </motion.div>
+    </div>
+  )
+}
+```
+
+## One gotcha: `overflow-hidden` vs `preserve-3d`
+
+`overflow-hidden` on the tilt wrapper clips child elements in the z-axis as well. If you have floating elements that need to escape the card bounds (badges, tooltips), put the `overflow-hidden` on an inner div, not on the `motion.div` that carries `preserve-3d`. Otherwise the 3D effect breaks on Safari and the overflow clipping behaves unexpectedly in Chrome.
+
+```tsx
+<motion.div style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}>
+  {/* No overflow-hidden here */}
+  <div className="relative overflow-hidden rounded-2xl">
+    {/* Content that needs clipping */}
+  </div>
+  {/* Floating badges can live here, outside the overflow-hidden div */}
+</motion.div>
+```
+
+This pattern is what powers the project cards on this site. The effect is subtle — most visitors won't notice it consciously — but they'll notice the cards feel more physical than every other portfolio they've seen.
+
+---
+
+The full implementation is in [`components/Projects.jsx`](https://github.com/rahyanakil/protsite) on GitHub. The spotlight opacity (`0.08`) and tilt range (±5–6°) are the two values worth tuning to match your design language.

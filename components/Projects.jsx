@@ -14,7 +14,7 @@ const projects = [
     subtitle: 'Modern Tutoring Platform',
     coverImage: '/project1/1.png',
     description:
-      'SkillBridge is a modern tutoring platform UI built with Next.js 16 (App Router), React 19, TypeScript, and Tailwind CSS 4. It connects students, tutors, and admins through role-based dashboards, real-time booking, Stripe payments, and an AI-powered chatbot backed by Groq Llama 3.3.',
+      'Online tutoring had a coordination problem — students, tutors, and admins each needed a completely different interface, but most platforms serve everyone the same page. SkillBridge solves this with parallel Next.js routes per role, Stripe-gated bookings, and a Groq-powered AI tutor that answers questions without exposing the API key to the client.',
     techStack: ['Next.js 16', 'React 19', 'TypeScript', 'Tailwind CSS 4', 'shadcn/ui', 'Framer Motion', 'Stripe.js', 'Groq SDK'],
     features: [
       'Role-based parallel routes for Student, Tutor, and Admin dashboards',
@@ -57,7 +57,7 @@ const projects = [
     subtitle: 'AI-Powered Retail Management Platform',
     coverImage: '/project2/1.png',
     description:
-      'SmartRetail AI replaces scattered spreadsheets and gut-feel decisions with a single intelligent platform. Every piece of retail data — sales, inventory, staff activity, and trends — flows into one dashboard, and a built-in Gemini AI layer turns raw numbers into plain-language guidance the owner can act on immediately.',
+      'Most retail owners manage stock on spreadsheets and make restock decisions on instinct. SmartRetail AI changes that — a Gemini-powered copilot grounded in live store data via 6 parallel DB queries so it cannot hallucinate numbers. One dashboard for sales, inventory, staff activity, and AI-ranked restock urgency.',
     techStack: ['Next.js 15', 'TypeScript', 'Tailwind CSS', 'ShadCN UI', 'TanStack Query', 'Recharts', 'Gemini AI', 'Zustand'],
     features: [
       'Role-based access (Admin / Owner / Cashier) enforced at Next.js Edge Middleware before any React code runs',
@@ -105,7 +105,7 @@ const projects = [
     subtitle: 'Real Estate Marketplace Frontend',
     coverImage: '/project3/1.png',
     description:
-      'A premium real estate marketplace frontend built with Next.js 15 App Router and TypeScript. Features role-based dashboards for Buyers, Agents, and Admins, Stripe checkout, and a dual-auth strategy that solves cross-origin cookie blocking on Vercel — replacing silent session drops with a reliable JWT Bearer header flow.',
+      'Vercel silently drops session cookies when frontend and backend live on different domains — users log in, get redirected, then hit 401 immediately. PropertySmart fixes this with a dual-auth strategy: JWT stored in localStorage with an Axios interceptor as the reliable path, cookie as fallback. Framer Motion UI, Stripe checkout, and role-based dashboards for Buyers, Agents, and Admins.',
     techStack: ['Next.js 15', 'TypeScript 5', 'Tailwind CSS', 'Framer Motion', 'TanStack Query v5', 'Stripe', 'React Hook Form', 'Zod', 'Recharts', 'Lenis'],
     features: [
       'Dual-auth strategy (Bearer token + cookie fallback) — solves Vercel cross-origin session loss that caused the login-flicker bug on production',
@@ -151,7 +151,7 @@ const projects = [
     subtitle: 'Educational Platform',
     coverImage: '/project4/1.png',
     description:
-      'A comprehensive educational platform for Cambrian School & College, featuring appointment booking, service categorization, database-driven workflows, and email notification systems for efficient institution management.',
+      'Cambrian School & College was managing appointment bookings by phone and paper — no confirmation, no tracking, high no-show rate. This platform digitizes the entire flow: online booking, service categorization, MongoDB-backed workflows, and Nodemailer email confirmations triggered at each booking state change.',
     techStack: ['React.js', 'Node.js', 'Express.js', 'MongoDB', 'Tailwind CSS', 'Nodemailer'],
     features: [
       'Appointment booking and service categorization system',

@@ -2,6 +2,7 @@ import Header from '@/components/Header'
 import Hero from '@/components/Hero'
 import About from '@/components/About'
 import Skills from '@/components/Skills'
+import Expertise from '@/components/Expertise'
 import Projects from '@/components/Projects'
 import Qualification from '@/components/Qualification'
 import LookingFor from '@/components/LookingFor'
@@ -30,6 +31,7 @@ export default function Home() {
         <Hero />
         <About />
         <Skills />
+        <Expertise />
         <Projects />
         <Qualification />
         <LookingFor />

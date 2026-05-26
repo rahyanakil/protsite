@@ -10,6 +10,7 @@ const sectionLinks = [
   { id: 'home',          label: 'Home' },
   { id: 'about',         label: 'About' },
   { id: 'skills',        label: 'Skills' },
+  { id: 'expertise',     label: 'Expertise' },
   { id: 'projects',      label: 'Projects' },
   { id: 'qualification', label: 'Qualification' },
   { id: 'contact',       label: 'Contact' },
