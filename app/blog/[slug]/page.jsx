@@ -67,7 +67,7 @@ export default async function BlogPost({ params }) {
             {frontmatter.title}
           </h1>
 
-          <p className="text-zinc-500 dark:text-zinc-400 text-sm leading-relaxed mb-6">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed mb-6">
             {frontmatter.description}
           </p>
 

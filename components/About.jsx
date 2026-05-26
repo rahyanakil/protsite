@@ -23,7 +23,7 @@ function GitHubStats() {
     >
       <div className="flex items-center gap-2 mb-3">
         <i className="bx bxl-github text-xl text-zinc-900 dark:text-white" />
-        <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">GitHub Live</p>
+        <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">GitHub Live</p>
       </div>
       {stats ? (
         <div className="grid grid-cols-3 gap-3 text-center">
@@ -161,7 +161,7 @@ export default function About() {
 
           {/* Currently Building Card */}
           <motion.div {...cardAnim(0.12)} className="card p-5">
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3">Currently Building</p>
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Currently Building</p>
             <div className="flex items-start gap-3">
               <span className="text-2xl">🚀</span>
               <div>
@@ -183,7 +183,7 @@ export default function About() {
 
           {/* Stats Card */}
           <motion.div {...cardAnim(0.16)} className="card p-5 sm:col-span-2 lg:col-span-2">
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4">By the Numbers</p>
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-4">By the Numbers</p>
             <div className="grid grid-cols-3 gap-4">
               {[
                 { icon: 'bx-award', value: 3, suffix: '+', label: 'Years Exp.' },
@@ -207,7 +207,7 @@ export default function About() {
 
           {/* Stack Card */}
           <motion.div {...cardAnim(0.2)} className="card p-5">
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3">Stack I Swear By</p>
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">Stack I Swear By</p>
             <div className="flex flex-wrap gap-2">
               {stack.map((s, i) => (
                 <motion.span
@@ -229,7 +229,7 @@ export default function About() {
 
           {/* Bio Card */}
           <motion.div {...cardAnim(0.24)} className="card p-6 sm:col-span-2 lg:col-span-3">
-            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-3">About</p>
+            <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-3">About</p>
             <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed text-sm whitespace-pre-line mb-4">
               {expanded ? fullBio : shortBio}
             </p>

@@ -25,7 +25,7 @@ export default function BlogPage() {
   const posts = getAllPosts()
 
   return (
-    <main className="min-h-screen pt-28 pb-20 px-4 sm:px-6 lg:px-8">
+    <main className="min-h-screen pt-28 pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto">
 
         {/* Header */}
@@ -70,7 +70,7 @@ export default function BlogPage() {
               <h2 className="text-lg font-bold text-zinc-900 dark:text-white mb-2 group-hover:text-accent transition-colors">
                 {post.title}
               </h2>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed mb-4">
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed mb-4">
                 {post.description}
               </p>
 

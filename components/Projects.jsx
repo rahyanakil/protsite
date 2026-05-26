@@ -147,36 +147,36 @@ const projects = [
   {
     id: 4,
     tags: ['React.js', 'Node.js'],
-    title: 'MixxStore',
-    subtitle: 'E-Commerce Baby Sports Shop',
-    coverImage: 'https://i.ibb.co/F61wyX5/1.jpg',
+    title: 'Cambrian School & College',
+    subtitle: 'Educational Platform',
+    coverImage: '/project4/1.png',
     description:
-      'MixxStore is a full-stack e-commerce platform specializing in baby sports toys. Features a complete product catalog, shopping cart, user reviews, and robust filtering — built as a personal MERN stack project.',
-    techStack: ['React.js', 'Node.js', 'Express.js', 'MongoDB', 'Firebase Auth', 'Tailwind CSS'],
+      'A comprehensive educational platform for Cambrian School & College, featuring appointment booking, service categorization, database-driven workflows, and email notification systems for efficient institution management.',
+    techStack: ['React.js', 'Node.js', 'Express.js', 'MongoDB', 'Tailwind CSS', 'Nodemailer'],
     features: [
-      'Full product catalog with search and category filters',
-      'Shopping cart with session persistence',
-      'Product reviews and ratings system',
-      'Firebase Authentication for secure user sessions',
-      'Admin panel for product management',
+      'Appointment booking and service categorization system',
+      'Database-driven workflows for bookings and notifications',
+      'Email notification functionality for appointment tracking',
+      'Scalable data models for content management',
+      'Service categorization and scheduling logic',
     ],
     challenges: [
-      'Implementing a real-time cart that syncs across sessions without a page reload.',
-      'Building a flexible product filtering system for multiple simultaneous filter criteria.',
-      'Optimizing product image loading to keep the catalog fast on slow connections.',
+      'Designing database workflows that handle appointment conflicts reliably.',
+      'Implementing email notification triggers across different booking states.',
+      'Building a flexible content management structure for different service categories.',
     ],
     futureImprovements: [
-      'Integrate Stripe payment gateway for end-to-end checkout.',
-      'Add a wishlist feature with price drop email alerts.',
-      'Introduce an admin dashboard for inventory and order management.',
+      'Add a student portal with online fee payment integration.',
+      'Implement SMS notifications alongside email alerts.',
+      'Build a real-time appointment analytics dashboard for administrators.',
     ],
-    liveLink: 'https://mixxstore-4a428.web.app',
-    githubLink: 'https://github.com/rahyanakil/mixxstore-client',
+    liveLink: 'https://www.cambrian.edu.bd/',
+    githubLink: 'https://github.com/rahyanakil',
     snapshots: [
-      'https://i.ibb.co/F61wyX5/1.jpg',
-      'https://i.ibb.co/Pmx5QRn/2.jpg',
-      'https://i.ibb.co/0h2tVtm/3.jpg',
-      'https://i.ibb.co/W3yBGxg/4.jpg',
+      '/project4/1.png',
+      '/project4/2.png',
+      '/project4/3.png',
+      '/project4/4.png',
     ],
   },
 ]
@@ -677,13 +677,13 @@ function ProjectCard({ project, onOpen }) {
           {/* Subtitle row */}
           <div className="flex items-center gap-2 mb-2">
             <span className="w-1.5 h-1.5 rounded-full bg-accent flex-shrink-0 animate-pulse" />
-            <p className="text-[10px] text-accent font-bold uppercase tracking-[0.22em] truncate">
+            <p className="text-xs text-accent font-bold uppercase tracking-widest truncate">
               {project.subtitle}
             </p>
           </div>
 
           {/* Title */}
-          <h3 className="text-[18px] font-bold text-zinc-900 dark:text-white leading-snug mb-2 group-hover:text-accent transition-colors duration-300">
+          <h3 className="text-lg font-bold text-zinc-900 dark:text-white leading-snug mb-2 group-hover:text-accent transition-colors duration-300">
             {project.title}
           </h3>
 
@@ -698,7 +698,7 @@ function ProjectCard({ project, onOpen }) {
             />
           </div>
 
-          <p className="text-[13px] text-zinc-500 dark:text-zinc-400 leading-relaxed flex-1 line-clamp-2 mb-5">
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed flex-1 line-clamp-2 mb-5">
             {project.description}
           </p>
 
