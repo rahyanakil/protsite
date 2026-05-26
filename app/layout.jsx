@@ -1,6 +1,7 @@
 import { Poppins } from 'next/font/google'
 import './globals.css'
 import Providers from '@/components/Providers'
+import { Analytics } from '@vercel/analytics/react'
 
 const poppins = Poppins({
   subsets: ['latin'],
@@ -85,6 +86,7 @@ export default function RootLayout({ children }) {
         className={`${poppins.variable} font-poppins bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300`}
       >
         <Providers>{children}</Providers>
+        <Analytics />
       </body>
     </html>
   )

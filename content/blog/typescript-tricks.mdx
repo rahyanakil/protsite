@@ -1,0 +1,102 @@
+---
+title: "5 TypeScript Tricks I Use in Every React Project"
+date: "2025-05-01"
+description: "Not the basics — these are the TypeScript patterns I reach for when plain interfaces aren't enough. Discriminated unions, the satisfies operator, template literal types, and more."
+tags: ["TypeScript", "React"]
+readTime: "6 min read"
+---
+
+TypeScript has a reputation for being verbose. After using it daily for two years, I think that reputation is earned by people who use it like strongly-typed JavaScript rather than as a tool with its own idioms.
+
+Here are five patterns I use regularly that make TypeScript *less* code, not more.
+
+## 1. Discriminated Unions for Variant Props
+
+When a component has multiple modes that share some props but diverge in others, reach for a discriminated union instead of `?` on everything.
+
+```tsx
+type ButtonProps =
+  | { variant: 'link'; href: string; download?: boolean }
+  | { variant: 'action'; onClick: () => void; disabled?: boolean }
+
+export function Button(props: ButtonProps) {
+  if (props.variant === 'link') {
+    // TypeScript knows href exists here, onClick does not
+    return <a href={props.href}>{...}</a>
+  }
+  return <button onClick={props.onClick}>{...}</button>
+}
+```
+
+The `variant` field is the discriminant. Once you narrow it, TypeScript gives you the correct shape — no more `Cannot read property 'href' of undefined` surprises.
+
+## 2. `as const` on Data Arrays
+
+When you define an array of string literals and then derive a type from it, `as const` prevents TypeScript from widening the type to `string[]`.
+
+```ts
+const ROLES = ['admin', 'tutor', 'student'] as const
+type Role = typeof ROLES[number] // 'admin' | 'tutor' | 'student'
+```
+
+Now `Role` is a union of exactly those three strings, not `string`. This is how I keep nav link arrays, tag lists, and status enums in sync with their TypeScript types without maintaining them in two places.
+
+## 3. The `satisfies` Operator
+
+Added in TypeScript 4.9, `satisfies` lets you validate a value against a type while still inferring the most specific type.
+
+```ts
+const theme = {
+  accent: '#f91460',
+  accentDark: '#80032d',
+} satisfies Record<string, string>
+
+// theme.accent is still typed as '#f91460', not just string
+// but TypeScript verified every value is a string
+```
+
+The difference from a plain type annotation: `const theme: Record<string, string> = {...}` would widen `accent` to `string`, losing the literal type. `satisfies` gives you both the check and the inference.
+
+I use it for config objects, route definitions, and any object where I want validation without losing precision.
+
+## 4. Template Literal Types for String Patterns
+
+When an API returns strings in a predictable format, template literal types let you encode that pattern in the type system.
+
+```ts
+type EventName = `on${Capitalize<string>}`
+// Valid: 'onClick', 'onChange', 'onFocus'
+// Invalid: 'click', 'change'
+
+type CSSUnit = `${number}px` | `${number}rem` | `${number}%`
+```
+
+A real case: I built a simple event emitter and typed the emitter's `on` method so only valid event names were accepted. Caught three typos at compile time that would have been silent runtime bugs.
+
+## 5. Mapped Types to Keep Props in Sync
+
+When you have a set of features that each need an enabled flag and a config object, mapped types ensure you can't add a feature to one without the other.
+
+```ts
+type Features = 'analytics' | 'darkMode' | 'experiments'
+
+type FeatureConfig = {
+  [K in Features]: {
+    enabled: boolean
+    config: Record<string, unknown>
+  }
+}
+
+const features: FeatureConfig = {
+  analytics: { enabled: true, config: { provider: 'vercel' } },
+  darkMode: { enabled: true, config: {} },
+  experiments: { enabled: false, config: {} },
+  // TypeScript errors if you add a new Feature above but forget to add it here
+}
+```
+
+This pattern scales well to any config-driven architecture. I use it for feature flags, plugin registries, and route definitions.
+
+---
+
+None of these require deep TypeScript knowledge — they're in the standard library, documented on the TypeScript handbook. The return on learning them is high: you write less defensive code because the compiler catches more before it ships.

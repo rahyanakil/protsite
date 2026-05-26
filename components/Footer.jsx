@@ -1,5 +1,6 @@
 'use client'
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 
 const navLinks = [
   { label: 'About', href: '#about' },
@@ -7,6 +8,8 @@ const navLinks = [
   { label: 'Projects', href: '#projects' },
   { label: 'Qualification', href: '#qualification' },
   { label: 'Contact', href: '#contact' },
+  { label: 'Blog', href: '/blog' },
+  { label: 'Uses', href: '/uses' },
 ]
 
 const socialLinks = [
@@ -50,9 +53,15 @@ export default function Footer() {
             <ul className="space-y-2">
               {navLinks.map(({ label, href }) => (
                 <li key={label}>
-                  <a href={href} className="text-sm text-zinc-500 hover:text-accent transition-colors">
-                    {label}
-                  </a>
+                  {href.startsWith('/') && !href.endsWith('.pdf') ? (
+                    <Link href={href} className="text-sm text-zinc-500 hover:text-accent transition-colors">
+                      {label}
+                    </Link>
+                  ) : (
+                    <a href={href} className="text-sm text-zinc-500 hover:text-accent transition-colors">
+                      {label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

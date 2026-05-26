@@ -1,0 +1,91 @@
+---
+title: "Building SkillBridge: Parallel Routes, Stripe & AI in One App"
+date: "2025-04-10"
+description: "A deep dive into the architectural decisions behind SkillBridge — a tutoring platform that uses Next.js parallel routes for role-based dashboards, Stripe PaymentIntent for secure bookings, and a Groq-powered AI tutor chatbot."
+tags: ["Next.js", "TypeScript", "Stripe", "AI"]
+readTime: "8 min read"
+---
+
+SkillBridge started as a challenge I set myself: build a real-world SaaS product that genuinely uses some of the more advanced features of the Next.js App Router. No toy projects, no tutorial code — a platform with three distinct user roles, real payments, and an AI feature that isn't just a gimmick.
+
+Here's what I learned building it.
+
+## The Role-Based Dashboard Problem
+
+Most tutorials solve role-based access with a simple `if (role === 'admin')` in the component. That works, but it means you're shipping all dashboard code to every user, and the server still renders content the user shouldn't see.
+
+Next.js parallel routes gave me a better answer. By creating `@student`, `@tutor`, and `@admin` slot directories under the dashboard layout, I could have the server render *only* the correct dashboard based on the session — zero client-side role checks, zero code leakage.
+
+```tsx
+// app/dashboard/layout.tsx
+export default function DashboardLayout({
+  children,
+  student,
+  tutor,
+  admin,
+}: {
+  children: React.ReactNode
+  student: React.ReactNode
+  tutor: React.ReactNode
+  admin: React.ReactNode
+}) {
+  const session = await getSession()
+  
+  if (session.role === 'student') return student
+  if (session.role === 'tutor') return tutor
+  return admin
+}
+```
+
+The layout receives all three slots but only returns the one matching the session. The other two are never sent to the client.
+
+The challenge was intercepting an unauthenticated request cleanly. Next.js middleware made this straightforward — read the JWT from the httpOnly cookie, verify it, and redirect to `/login` before the layout even runs.
+
+## Stripe PaymentIntent: The Right Way
+
+Stripe has two main flows — Charges and PaymentIntents. For a booking platform where authorisation and capture can happen at different times, PaymentIntents are the correct choice.
+
+My flow:
+1. User clicks "Book Session" → POST to a Route Handler that creates a PaymentIntent server-side
+2. The client receives only the `clientSecret` (never the full intent object)
+3. `<PaymentElement>` renders using that secret
+4. On submit, Stripe.js confirms the payment client-side
+5. A webhook (`/api/webhooks/stripe`) listens for `payment_intent.succeeded` and marks the booking as PAID in the database
+
+The critical thing I got wrong first: I was checking `paymentIntent.status` on the client after confirmation. That's not reliable — the client can be closed or refreshed. The webhook is the only source of truth.
+
+```ts
+// app/api/webhooks/stripe/route.ts
+const event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+
+if (event.type === 'payment_intent.succeeded') {
+  const intent = event.data.object
+  await db.booking.update({
+    where: { stripePaymentIntentId: intent.id },
+    data: { status: 'PAID' },
+  })
+}
+```
+
+## The AI Tutor: Rate Limiting Without a Database
+
+The AI chatbot uses Groq's Llama 3.3-70b model, which is fast enough to feel real-time. The product requirement was: authenticated users get unlimited queries, guests get 3 per session.
+
+I didn't want to hit a database on every message just to check a counter. The solution was a hybrid approach:
+
+- **Guests:** counter stored in `sessionStorage`, checked client-side before the request is sent. Easy to bypass, but guests aren't paying users so it's a soft limit.
+- **Authenticated users:** rate limited server-side using a sliding window stored in Redis (Upstash). Harder to bypass, protects the API costs.
+
+The 5-second cooldown between sends was a UI concern, not a backend one. A `disabled` button state managed by a `useRef` timer was all it took.
+
+## What I'd Do Differently
+
+**TypeScript strictness first.** I added strict mode halfway through, which meant fixing dozens of implicit `any` types across the codebase. Starting strict is far cheaper than retrofitting it.
+
+**Seed data earlier.** I was manually clicking through UI flows to test for too long. Seeding realistic data from the start would have caught edge cases in the pagination and filtering logic much sooner.
+
+**Decouple the AI from the chat UI.** The Groq API call lives directly in the API route that the chat component hits. It should be in a service layer so it can be swapped out (say, for OpenAI) without touching the route handler.
+
+---
+
+The full source is on [GitHub](https://github.com/rahyanakil/skillbridge-frontend) and the live demo is at [skillbridge-frontend-ruby.vercel.app](https://skillbridge-frontend-ruby.vercel.app). Feel free to poke around — the AI chatbot works on the demo without an account.

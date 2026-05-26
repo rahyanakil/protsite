@@ -1,0 +1,144 @@
+---
+title: "Building PropertySmart: Dual Auth, Lenis Sync, and a Fully Animated UI"
+date: "2025-05-18"
+description: "Three hard problems from building a production real estate marketplace frontend — cross-origin session loss on Vercel, keeping Framer Motion accurate while Lenis hijacks scroll, and the useSearchParams Suspense trap that silently breaks builds."
+tags: ["Next.js", "TypeScript", "React"]
+readTime: "7 min read"
+---
+
+PropertySmart is a real estate marketplace frontend — role-based dashboards for Buyers, Agents, and Admins, Stripe checkout, a Framer Motion–heavy animated UI, and Lenis smooth scroll throughout. The stack is Next.js 15 App Router with TypeScript, TanStack Query v5, and Recharts for analytics.
+
+Three problems came up during development that weren't obvious from the documentation. Here's how each one works and how it was solved.
+
+## 1. The Cross-Origin Session Problem on Vercel
+
+### What broke
+
+Vercel assigns separate domains to each deployment:
+
+- Frontend: `property-smart-frontend.vercel.app`
+- Backend: `property-smart-backend.vercel.app`
+
+The backend set a session cookie on login. It worked perfectly on localhost (where a `/api` rewrite proxy makes the frontend and backend same-origin). On Vercel, modern browsers quietly blocked the cookie as a third-party cross-origin cookie.
+
+The symptom was subtle: the login appeared to succeed, the user was redirected to the dashboard, and then `GET /auth/me` — called on every page load — dropped the cookie and returned `401`. The user was logged out immediately after logging in. Classic login flicker.
+
+### The fix: dual auth
+
+Instead of relying on cookies alone, the login flow now does both:
+
+```ts
+// useAuth.login()
+const { user, accessToken, refreshToken } = await authApi.login(credentials)
+TokenStore.setAccess(accessToken)    // localStorage, SSR-safe
+TokenStore.setRefresh(refreshToken)
+setUser(user)
+```
+
+The Axios instance has a request interceptor that attaches the token on every outgoing call:
+
+```ts
+axiosInstance.interceptors.request.use(config => {
+  const token = TokenStore.getAccess()
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
+```
+
+The backend's `authenticate()` middleware reads the cookie first, then falls back to the `Authorization` header. Both paths work:
+
+- **Localhost** — cookie works (same-origin via Next.js proxy rewrite) + header also set
+- **Vercel production** — cookie blocked → header is the reliable path, always present
+
+The 401 response interceptor handles token refresh silently:
+
+```ts
+axiosInstance.interceptors.response.use(null, async error => {
+  if (error.response?.status !== 401) return Promise.reject(error)
+  try {
+    const { accessToken, refreshToken } = await authApi.refresh(TokenStore.getRefresh())
+    TokenStore.setAccess(accessToken)
+    TokenStore.setRefresh(refreshToken)
+    error.config.headers.Authorization = `Bearer ${accessToken}`
+    return axiosInstance(error.config)   // replay original request
+  } catch {
+    TokenStore.clear()
+    window.location.href = '/login'
+    return Promise.reject(error)
+  }
+})
+```
+
+On page reload, the AuthProvider calls `GET /auth/me`. The stored token is already attached by the interceptor — no session loss regardless of cookie state.
+
+## 2. Keeping Framer Motion Accurate While Lenis Hijacks Scroll
+
+### What broke
+
+Lenis smooth scroll works by cancelling the browser's native scroll and animating it manually with `requestAnimationFrame`. This means `window.scrollY` doesn't update during a Lenis scroll tick — it only updates when Lenis decides to commit the position.
+
+Framer Motion's `useScroll` reads `window.scrollY`. The Navbar uses `useScroll` + `useTransform` to fade the background from transparent to solid over the first 60px of scroll — a glass morphism effect that's central to the design.
+
+With Lenis running, the Navbar background didn't update smoothly during scroll. It would jump between states rather than transitioning, because Framer was reading stale scroll values.
+
+### The fix: LenisFramerSync
+
+Inside the `SmoothScroll` component, a small effect dispatches a synthetic native `scroll` event on every Lenis RAF tick:
+
+```ts
+function LenisFramerSync() {
+  const lenis = useLenis(({ scroll }) => {
+    // Dispatch a real scroll event so Framer's useScroll reads the correct value
+    window.dispatchEvent(new Event('scroll'))
+  })
+  return null
+}
+```
+
+`useScroll` listens to native `scroll` events on the window. By firing one on every Lenis tick, Framer reads the correct virtual scroll position — the one Lenis is animating to — rather than waiting for the browser to catch up.
+
+This is the only place in the codebase where we reach behind the abstraction layer. Everything else uses the Lenis `useLenis` hook directly.
+
+## 3. The useSearchParams Suspense Trap
+
+### What broke
+
+Next.js's `useSearchParams()` hook requires the calling component to be inside a `<Suspense>` boundary. If it isn't, `next build` fails with:
+
+```
+Error: useSearchParams() should be wrapped in a suspense boundary
+```
+
+This is easy to miss during development because `next dev` is more permissive — the error only surfaces at build time.
+
+The properties listing page, payment page, and auth callback all read search params. Each had the same problem.
+
+### The fix: consistent Suspense wrapping
+
+The pattern is to split every page into a shell and a content component:
+
+```tsx
+// app/properties/page.tsx
+
+function PropertiesContent() {
+  const searchParams = useSearchParams()
+  const type = searchParams.get('type')
+  // ...
+}
+
+export default function PropertiesPage() {
+  return (
+    <Suspense fallback={<PropertiesSkeleton />}>
+      <PropertiesContent />
+    </Suspense>
+  )
+}
+```
+
+The outer page export is a Server Component that renders the Suspense boundary. The inner content component is a Client Component that reads the params. Next.js can statically render the shell and stream in the content — which also improves the initial page load.
+
+The rule is: any `page.tsx` that calls `useSearchParams` must follow this pattern. Putting the `<Suspense>` inside the content component itself doesn't satisfy the requirement — it needs to wrap the component, not be inside it.
+
+---
+
+PropertySmart is deployed on Vercel and the source is on [GitHub](https://github.com/rahyanakil). The dual-auth setup, Lenis sync, and build patterns described here are all production code — not theoretical fixes.

@@ -1,0 +1,56 @@
+---
+title: "From Vite + React to Next.js 14: Why I Rebuilt My Portfolio"
+date: "2025-03-20"
+description: "I rewrote my portfolio from scratch — same design goals, completely different stack. Here's what pushed me to migrate from Vite + React to Next.js 14 with App Router, and what actually changed under the hood."
+tags: ["Next.js", "React", "Portfolio"]
+readTime: "5 min read"
+---
+
+My portfolio started as a Vite + React single-page app. It worked, it was fast in dev, and I understood every file in it. So why rebuild it?
+
+The honest answer: the old version had no SEO story, and I was losing Google impressions to portfolio sites built with frameworks I consider less capable. That's a solvable problem.
+
+## What the Old Version Got Wrong
+
+The Vite app was a client-side render — the server sent a nearly empty HTML shell and React hydrated everything in the browser. For a portfolio where the goal is to be found by recruiters and engineers, this is a problem.
+
+- **Googlebot** would sometimes index the empty shell instead of the content
+- **Open Graph previews** on LinkedIn and Twitter showed nothing, because crawlers that don't execute JavaScript never saw the text
+- **Core Web Vitals** were acceptable but not great — the large first paint included loading the full React bundle before any content appeared
+
+None of these are hypothetical. I checked my Search Console data and the impressions were disappointing for someone with real projects to show.
+
+## The Next.js 14 Upgrade Path
+
+The rewrite took about two weeks, mostly evenings. Here's what the move actually involved:
+
+**Server Components by default.** In the App Router, every component is a Server Component unless you add `'use client'`. For a portfolio with mostly static content, this is ideal — sections like `Qualification`, `Skills`, and `LookingFor` are plain server-rendered HTML with no JavaScript overhead.
+
+**Metadata API.** Instead of `<Helmet>` or manually managing `<head>` tags, I defined metadata in `layout.jsx`:
+
+```js
+export const metadata = {
+  title: { default: 'Rahyan Akil | Full-Stack Developer', template: '%s | Rahyan Akil' },
+  openGraph: { images: [{ url: '/og-image.jpg', width: 1200, height: 630 }] },
+}
+```
+
+Every page — including future blog posts — inherits this template automatically.
+
+**Image optimisation.** The `<Image>` component from `next/image` handles WebP conversion, lazy loading, and correct `srcset` generation automatically. My profile photo went from a 400KB JPEG to a ~60KB WebP served to modern browsers.
+
+**CSS migration.** The old project had per-component CSS files (`Header.css`, `About.css`, etc.). Switching to Tailwind felt risky at first — I'd used it before but not committed to it on a full project. In practice, it removed the entire mental overhead of naming CSS classes and killed specificity conflicts entirely.
+
+## The Parts I Was Wrong About
+
+I assumed `'use client'` would be rare. In practice, any component with `useState`, `useEffect`, event listeners, or animations needs it. Most of my visible components are client components — it's really the data-fetching and SEO layer that becomes server-side.
+
+The `Providers.jsx` pattern took me a while to get right. Context (`ThemeContext`, `LenisContext`) must live in a Client Component, but it can wrap Server Components as children — the children aren't affected. Once I understood that, the architecture clicked.
+
+## Was It Worth It?
+
+Yes, clearly. The Lighthouse score went from ~72 to ~94 on desktop. More importantly, the Open Graph previews now work, which means every time I share a project link the card shows my name, photo, and description rather than a blank box.
+
+The rebuild also gave me a portfolio I'm comfortable sharing the source code for — the architecture matches what I'd recommend to a client today.
+
+The source is public at [github.com/rahyanakil](https://github.com/rahyanakil).

@@ -110,7 +110,12 @@ export default function Contact() {
     e.preventDefault()
     setStatus('sending')
     emailjs
-      .sendForm('service_5597sd8', 'template_z41agyl', form.current, 'kkhB4tPMlADsGDhrb')
+      .sendForm(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID,
+        form.current,
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY,
+      )
       .then(() => {
         setStatus('success')
         fire()

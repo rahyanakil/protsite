@@ -1,10 +1,12 @@
 'use client'
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
+import Link from 'next/link'
 import { AnimatePresence } from 'framer-motion'
 import { useTheme } from './Providers'
 import CommandPalette from './CommandPalette'
 
-const navLinks = [
+const sectionLinks = [
   { id: 'home', label: 'Home', icon: 'uil-estate' },
   { id: 'about', label: 'About', icon: 'uil-user' },
   { id: 'skills', label: 'Skills', icon: 'uil-file-alt' },
@@ -13,12 +15,18 @@ const navLinks = [
   { id: 'contact', label: 'Contact', icon: 'uil-message' },
 ]
 
+const pageLinks = [
+  { href: '/blog', label: 'Blog', icon: 'uil-rss' },
+]
+
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [activeNav, setActiveNav] = useState('home')
   const [cmdOpen, setCmdOpen] = useState(false)
   const { theme, toggleTheme } = useTheme()
+  const pathname = usePathname()
+  const isHome = pathname === '/'
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY >= 80)
@@ -27,7 +35,7 @@ export default function Header() {
   }, [])
 
   useEffect(() => {
-    const observers = navLinks.map(({ id }) => {
+    const observers = sectionLinks.map(({ id }) => {
       const el = document.getElementById(id)
       if (!el) return null
       const observer = new IntersectionObserver(
@@ -74,12 +82,12 @@ export default function Header() {
 
           {/* Desktop nav */}
           <ul className="hidden md:flex items-center gap-8">
-            {navLinks.map(({ id, label, icon }) => (
+            {sectionLinks.map(({ id, label, icon }) => (
               <li key={id}>
                 <a
-                  href={`#${id}`}
+                  href={isHome ? `#${id}` : `/#${id}`}
                   className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 ${
-                    activeNav === id
+                    isHome && activeNav === id
                       ? 'text-accent'
                       : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
                   }`}
@@ -87,6 +95,21 @@ export default function Header() {
                   <i className={`uil ${icon} text-base`}></i>
                   {label}
                 </a>
+              </li>
+            ))}
+            {pageLinks.map(({ href, label, icon }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className={`flex items-center gap-1.5 text-sm font-medium transition-colors duration-200 ${
+                    pathname.startsWith(href)
+                      ? 'text-accent'
+                      : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white'
+                  }`}
+                >
+                  <i className={`uil ${icon} text-base`}></i>
+                  {label}
+                </Link>
               </li>
             ))}
           </ul>
@@ -145,13 +168,13 @@ export default function Header() {
             </button>
 
             <ul className="flex flex-col items-center gap-8">
-              {navLinks.map(({ id, label, icon }) => (
+              {sectionLinks.map(({ id, label, icon }) => (
                 <li key={id}>
                   <a
-                    href={`#${id}`}
+                    href={isHome ? `#${id}` : `/#${id}`}
                     onClick={() => setMenuOpen(false)}
                     className={`flex items-center gap-3 text-2xl font-medium transition-colors ${
-                      activeNav === id
+                      isHome && activeNav === id
                         ? 'text-accent'
                         : 'text-zinc-700 dark:text-zinc-300 hover:text-accent'
                     }`}
@@ -159,6 +182,22 @@ export default function Header() {
                     <i className={`uil ${icon} text-2xl`}></i>
                     {label}
                   </a>
+                </li>
+              ))}
+              {pageLinks.map(({ href, label, icon }) => (
+                <li key={href}>
+                  <Link
+                    href={href}
+                    onClick={() => setMenuOpen(false)}
+                    className={`flex items-center gap-3 text-2xl font-medium transition-colors ${
+                      pathname.startsWith(href)
+                        ? 'text-accent'
+                        : 'text-zinc-700 dark:text-zinc-300 hover:text-accent'
+                    }`}
+                  >
+                    <i className={`uil ${icon} text-2xl`}></i>
+                    {label}
+                  </Link>
                 </li>
               ))}
             </ul>
