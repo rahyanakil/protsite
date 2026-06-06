@@ -1,4 +1,4 @@
-import { Poppins } from 'next/font/google'
+import { Poppins, Space_Grotesk, JetBrains_Mono } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 import Providers from '@/components/Providers'
@@ -11,13 +11,27 @@ const poppins = Poppins({
   display: 'swap',
 })
 
+const grotesk = Space_Grotesk({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-grotesk',
+  display: 'swap',
+})
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  variable: '--font-mono',
+  display: 'swap',
+})
+
 const BASE_URL = 'https://rahyanakil.vercel.app'
 
 export const metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "Rahyan Akil | Full-Stack Developer",
-    template: "%s | Rahyan Akil",
+    default: 'Rahyan Akil | Full-Stack Developer',
+    template: '%s | Rahyan Akil',
   },
   description:
     'Portfolio of Rahyan Shamsi Akil — Full-Stack Developer specialising in Next.js, React, Node.js, TypeScript, and modern web technologies. Open to work.',
@@ -36,14 +50,12 @@ export const metadata = {
     title: 'Rahyan Akil | Full-Stack Developer',
     description:
       'Full-Stack Developer specialising in Next.js, React, Node.js & TypeScript. Building fast, beautiful web applications. Open to work.',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Rahyan Akil — Full-Stack Developer Portfolio',
-      },
-    ],
+    images: [{
+      url: '/og-image.jpg',
+      width: 1200,
+      height: 630,
+      alt: 'Rahyan Akil — Full-Stack Developer Portfolio',
+    }],
   },
   twitter: {
     card: 'summary_large_image',
@@ -68,15 +80,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning className="dark">
       <head>
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
-        />
-        <link
-          rel="stylesheet"
-          href="https://unicons.iconscout.com/release/v4.0.8/css/line.css"
-        />
-        {/* Prevent flash of wrong theme */}
+        {/* Theme init — runs before hydration to prevent flash */}
         <Script
           id="theme-init"
           strategy="beforeInteractive"
@@ -86,7 +90,7 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body
-        className={`${poppins.variable} font-poppins bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300`}
+        className={`${poppins.variable} ${grotesk.variable} ${jetbrainsMono.variable} font-grotesk bg-os-bg text-os-text antialiased`}
       >
         <Providers>{children}</Providers>
         <Analytics />

@@ -1,47 +1,42 @@
-import Header from '@/components/Header'
-import Hero from '@/components/Hero'
-import About from '@/components/About'
-import Skills from '@/components/Skills'
-import Expertise from '@/components/Expertise'
-import Projects from '@/components/Projects'
-import Qualification from '@/components/Qualification'
-import LookingFor from '@/components/LookingFor'
-import Testimonials from '@/components/Testimonials'
-import Contact from '@/components/Contact'
-import Footer from '@/components/Footer'
-import ScrollUp from '@/components/ScrollUp'
-import ScrollProgress from '@/components/ScrollProgress'
-import CustomCursor from '@/components/CustomCursor'
-import CursorSpotlight from '@/components/CursorSpotlight'
-import SectionNav from '@/components/SectionNav'
-import Preloader from '@/components/Preloader'
-import HireMeBar from '@/components/HireMeBar'
-import EasterEgg from '@/components/EasterEgg'
+'use client'
+import { useState, useEffect } from 'react'
+
+import BootSequence  from '@/components/BootSequence'
+import SystemNav     from '@/components/SystemNav'
+import StatusBar     from '@/components/StatusBar'
+import MissionControl from '@/components/MissionControl'
+import SystemOverview from '@/components/SystemOverview'
+import SkillsMatrix  from '@/components/SkillsMatrix'
+import ProjectLab    from '@/components/ProjectLab'
+import CareerLog     from '@/components/CareerLog'
+import OpenChannel   from '@/components/OpenChannel'
+import OsFooter      from '@/components/OsFooter'
 
 export default function Home() {
+  const [booted, setBooted] = useState(false)
+
+  useEffect(() => {
+    if (sessionStorage.getItem('rahyan-os-booted')) setBooted(true)
+  }, [])
+
   return (
     <>
-      <Preloader />
-      <CustomCursor />
-      <CursorSpotlight />
-      <ScrollProgress />
-      <SectionNav />
-      <Header />
-      <main>
-        <Hero />
-        <About />
-        <Skills />
-        <Expertise />
-        <Projects />
-        <Qualification />
-        <LookingFor />
-        <Testimonials />
-        <Contact />
+      {!booted && <BootSequence onComplete={() => setBooted(true)} />}
+
+      {/* OS Shell */}
+      <SystemNav />
+      <StatusBar />
+
+      {/* Main canvas — offset for sidebar (xl) and top bar (mobile) */}
+      <main className="xl:ml-52 pt-12 xl:pt-0 mb-7">
+        <MissionControl />
+        <SystemOverview />
+        <SkillsMatrix />
+        <ProjectLab />
+        <CareerLog />
+        <OpenChannel />
+        <OsFooter />
       </main>
-      <Footer />
-      <ScrollUp />
-      <HireMeBar />
-      <EasterEgg />
     </>
   )
 }
