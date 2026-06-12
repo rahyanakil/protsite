@@ -1,6 +1,8 @@
 'use client'
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 import Lenis from 'lenis'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { getQueryClient } from '@/lib/queryClient'
 
 const ThemeContext = createContext({ theme: 'dark', toggleTheme: () => {} })
 export const useTheme = () => useContext(ThemeContext)
@@ -9,6 +11,7 @@ const LenisContext = createContext(null)
 export const useLenis = () => useContext(LenisContext)
 
 export default function Providers({ children }) {
+  const queryClient = getQueryClient()
   const [theme, setTheme] = useState('dark')
   const lenisRef = useRef(null)
 
@@ -49,10 +52,12 @@ export default function Providers({ children }) {
   }, [])
 
   return (
-    <LenisContext.Provider value={lenisRef}>
-      <ThemeContext.Provider value={{ theme, toggleTheme }}>
-        {children}
-      </ThemeContext.Provider>
-    </LenisContext.Provider>
+    <QueryClientProvider client={queryClient}>
+      <LenisContext.Provider value={lenisRef}>
+        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+          {children}
+        </ThemeContext.Provider>
+      </LenisContext.Provider>
+    </QueryClientProvider>
   )
 }

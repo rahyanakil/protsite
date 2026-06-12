@@ -290,3 +290,38 @@ html, body {
 .dark .os-glass-btn {
   background: rgba(5, 5, 16, 0.85);
 }
+
+/* ══════════════════════════════════════════════════
+   Section backgrounds — subtle dot grid on all sections
+   ══════════════════════════════════════════════════ */
+
+#system-overview,
+#skills-matrix,
+#project-lab,
+#career-log,
+#open-channel {
+  background-image: radial-gradient(circle, var(--grid-dot) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ══════════════════════════════════════════════════
+   Photo card scan-line shimmer (decorative)
+   ══════════════════════════════════════════════════ */
+
+@keyframes scanLine {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 0.04; }
+  90%  { opacity: 0.04; }
+  100% { transform: translateY(200%); opacity: 0; }
+}
+
+.scan-shimmer::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0;
+  height: 40%;
+  background: linear-gradient(to bottom, transparent, rgba(249,20,96,0.04), transparent);
+  pointer-events: none;
+  animation: scanLine 8s linear infinite;
+}
+

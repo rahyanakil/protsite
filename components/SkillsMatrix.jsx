@@ -1,9 +1,10 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 
-/* ─── Skills organized as architecture layers ─── */
-const LAYERS = [
+const LAYERS_FB = [
   {
     id: 'ui',
     label: 'APPLICATION LAYER',
@@ -38,8 +39,7 @@ const LAYERS = [
   },
 ]
 
-/* ─── Expertise domains ─── */
-const DOMAINS = [
+const DOMAINS_FB = [
   {
     num: '01',
     title: 'Full-Stack Development',
@@ -127,12 +127,29 @@ const DOMAINS = [
 ]
 
 export default function SkillsMatrix() {
-  const [activeLayer, setActiveLayer] = useState('ui')
+  const [activeLayer, setActiveLayer] = useState(LAYERS_FB[0].id)
   const [activeDomain, setActiveDomain] = useState(null)
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-10% 0px' })
 
-  const currentLayer = LAYERS.find(l => l.id === activeLayer)
+  const { data: skills } = useQuery({
+    queryKey: ['skills'],
+    queryFn: () => api.get('/api/v1/skills').then(r => r.data),
+    initialData: { layers: LAYERS_FB, domains: DOMAINS_FB },
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const layers  = skills?.layers?.length  ? skills.layers  : LAYERS_FB
+  const domains = skills?.domains?.length ? skills.domains : DOMAINS_FB
+
+  // Keep activeLayer valid when data changes
+  useEffect(() => {
+    if (layers.length && !layers.find(l => l.id === activeLayer)) {
+      setActiveLayer(layers[0].id)
+    }
+  }, [layers])
+
+  const currentLayer = layers.find(l => l.id === activeLayer) || layers[0]
 
   return (
     <section id="skills-matrix" ref={ref} className="xl:pl-52 py-24 px-4 sm:px-6 lg:px-8 xl:px-12 pb-7">
@@ -162,7 +179,7 @@ export default function SkillsMatrix() {
 
           {/* Layer tabs */}
           <div className="flex flex-wrap gap-2 mb-6">
-            {LAYERS.map(layer => (
+            {layers.map(layer => (
               <button
                 key={layer.id}
                 onClick={() => setActiveLayer(layer.id)}
@@ -199,7 +216,7 @@ export default function SkillsMatrix() {
                 <div>
                   <div className="font-mono text-[10px] text-os-green tracking-wider mb-3">EXPERT</div>
                   <div className="flex flex-wrap gap-2">
-                    {currentLayer.expert.map(s => (
+                    {(currentLayer.expert || []).map(s => (
                       <span key={s} className="px-3 py-1.5 rounded font-mono text-xs text-os-text border border-os-border-bright bg-os-panel">
                         {s}
                       </span>
@@ -209,7 +226,7 @@ export default function SkillsMatrix() {
                 <div>
                   <div className="font-mono text-[10px] text-os-text-muted tracking-wider mb-3">PROFICIENT</div>
                   <div className="flex flex-wrap gap-2">
-                    {currentLayer.familiar.map(s => (
+                    {(currentLayer.familiar || []).map(s => (
                       <span key={s} className="px-3 py-1.5 rounded font-mono text-xs text-os-text-muted border border-os-border">
                         {s}
                       </span>
@@ -229,7 +246,7 @@ export default function SkillsMatrix() {
         >
           <div className="label-mono mb-4">EXPERTISE DOMAINS — click to expand</div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {DOMAINS.map((d, i) => {
+            {domains.map((d, i) => {
               const isOpen = activeDomain === d.num
               return (
                 <motion.div
@@ -266,7 +283,7 @@ export default function SkillsMatrix() {
                       className="border-t border-os-border px-4 pb-4 pt-3"
                     >
                       <div className="space-y-1.5 mb-3">
-                        {d.delivers.map(item => (
+                        {(d.delivers || []).map(item => (
                           <div key={item} className="flex items-start gap-2">
                             <span className="text-accent mt-0.5 shrink-0 text-xs">›</span>
                             <span className="font-mono text-[11px] text-os-text-muted leading-snug">{item}</span>
@@ -274,7 +291,7 @@ export default function SkillsMatrix() {
                         ))}
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        {d.tags.map(t => (
+                        {(d.tags || []).map(t => (
                           <span key={t} className="font-mono text-[10px] px-2 py-0.5 rounded border border-os-border text-os-text-dim">
                             {t}
                           </span>

@@ -69,7 +69,7 @@ export default function StatusBar() {
       {/* Right — time + hint */}
       <div className="flex items-center gap-3 shrink-0">
         <span className="font-mono text-[10px] text-os-text-dim hidden sm:inline">
-          ↑↓ scroll · K for search
+          ↑↓ scroll to navigate
         </span>
         <span className="font-mono text-[10px] text-os-text-muted">{time}</span>
       </div>

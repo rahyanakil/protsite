@@ -185,7 +185,7 @@ export default function OpenChannel() {
         </motion.div>
 
         {/* ─── Field Reports (Testimonials) ─── */}
-        <motion.div {...fd(0.2)} className="mb-16">
+        <motion.div {...fd(0.2)} className="mb-14">
           <div className="label-mono mb-6">FIELD REPORTS — from collaborators</div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {FIELD_REPORTS.map((r, i) => (

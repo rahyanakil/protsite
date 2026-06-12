@@ -1,9 +1,10 @@
 'use client'
 import { useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
+import { api } from '@/lib/api'
 
-/* ─── Timeline entries — styled as git log ─── */
-const LOG = [
+const LOG_FB = [
   {
     hash: 'a3f2b1c',
     type: 'work',
@@ -100,9 +101,26 @@ const TYPE_BG = {
   cert:      'text-[#00e56b] border-[rgba(0,229,107,0.28)] bg-[rgba(0,229,107,0.08)]',
 }
 
+function normaliseEntry(e) {
+  return {
+    ...e,
+    _key: e._id || e.hash,
+    commits: Array.isArray(e.commits) ? e.commits : [],
+  }
+}
+
 export default function CareerLog() {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-10% 0px' })
+
+  const { data: rawEntries } = useQuery({
+    queryKey: ['career'],
+    queryFn: () => api.get('/api/v1/career').then(r => r.data),
+    initialData: LOG_FB,
+    staleTime: 5 * 60 * 1000,
+  })
+
+  const entries = (rawEntries?.length ? rawEntries : LOG_FB).map(normaliseEntry)
 
   return (
     <section id="career-log" ref={ref} className="xl:pl-52 py-24 px-4 sm:px-6 lg:px-8 xl:px-12 pb-7">
@@ -149,8 +167,8 @@ export default function CareerLog() {
           <div className="absolute left-0 sm:left-3.5 top-0 bottom-0 w-px bg-os-border" />
 
           <div className="space-y-0">
-            {LOG.map((entry, i) => (
-              <LogEntry key={entry.hash} entry={entry} idx={i} inView={inView} />
+            {entries.map((entry, i) => (
+              <LogEntry key={entry._key} entry={entry} idx={i} inView={inView} />
             ))}
           </div>
         </div>
@@ -187,8 +205,8 @@ function LogEntry({ entry, idx, inView }) {
               {entry.hash}
             </code>
           </div>
-          <span className={`font-mono text-[10px] px-2 py-0.5 rounded border self-start tracking-wider ${TYPE_BG[entry.type]}`}>
-            {TYPE_LABEL[entry.type]}
+          <span className={`font-mono text-[10px] px-2 py-0.5 rounded border self-start tracking-wider ${TYPE_BG[entry.type] || TYPE_BG.work}`}>
+            {TYPE_LABEL[entry.type] || entry.type?.toUpperCase()}
           </span>
           <span className="font-mono text-[11px] text-os-text-muted ml-auto hidden sm:block">{entry.period}</span>
         </div>
