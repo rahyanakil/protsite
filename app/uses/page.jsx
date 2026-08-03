@@ -3,6 +3,14 @@ import Link from 'next/link'
 export const metadata = {
   title: 'Uses',
   description: 'The tools, software, and gear I use every day as a full-stack developer.',
+  alternates: {
+    canonical: '/uses',
+  },
+  openGraph: {
+    type: 'website',
+    title: 'Uses | Rahyan Akil',
+    description: 'The tools, software, and gear I use every day as a full-stack developer.',
+  },
 }
 
 const sections = [

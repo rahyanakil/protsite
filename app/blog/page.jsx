@@ -4,6 +4,14 @@ import { getAllPosts } from '@/lib/blog'
 export const metadata = {
   title: 'Blog',
   description: 'Writing about Next.js, React, TypeScript, and the craft of building web applications.',
+  alternates: {
+    canonical: '/blog',
+  },
+  openGraph: {
+    type: 'website',
+    title: 'Blog | Rahyan Akil',
+    description: 'Writing about Next.js, React, TypeScript, and the craft of building web applications.',
+  },
 }
 
 const TAG_COLORS = {

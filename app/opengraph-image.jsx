@@ -169,7 +169,7 @@ export default async function OGImage() {
             letterSpacing: '0.05em',
           }}
         >
-          rahyanakil.vercel.app
+          rahyanshamsi.com
         </p>
       </div>
     ),

@@ -11,9 +11,27 @@ export async function generateMetadata({ params }) {
   const { slug } = await params
   const post = await getPost(slug)
   if (!post) return {}
+  const { frontmatter } = post
   return {
-    title: post.frontmatter.title,
-    description: post.frontmatter.description,
+    title: frontmatter.title,
+    description: frontmatter.description,
+    alternates: {
+      canonical: `/blog/${slug}`,
+    },
+    openGraph: {
+      type: 'article',
+      title: frontmatter.title,
+      description: frontmatter.description,
+      publishedTime: frontmatter.date,
+      authors: ['Rahyan Shamsi Akil'],
+      tags: frontmatter.tags,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: frontmatter.title,
+      description: frontmatter.description,
+      images: ['/opengraph-image'],
+    },
   }
 }
 
@@ -32,6 +50,8 @@ function formatDate(dateStr) {
   })
 }
 
+const SITE_URL = 'https://rahyanshamsi.com'
+
 export default async function BlogPost({ params }) {
   const { slug } = await params
   const post = await getPost(slug)
@@ -39,8 +59,33 @@ export default async function BlogPost({ params }) {
 
   const { frontmatter, html } = post
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: frontmatter.title,
+    description: frontmatter.description,
+    datePublished: frontmatter.date,
+    keywords: frontmatter.tags?.join(', '),
+    url: `${SITE_URL}/blog/${slug}`,
+    author: {
+      '@type': 'Person',
+      name: 'Rahyan Shamsi Akil',
+      url: SITE_URL,
+    },
+    publisher: {
+      '@type': 'Person',
+      name: 'Rahyan Shamsi Akil',
+      url: SITE_URL,
+    },
+  }
+
   return (
-    <main className="min-h-screen pt-28 pb-24 px-4 sm:px-6 lg:px-8">
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <main className="min-h-screen pt-28 pb-24 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto">
 
         {/* Back */}
@@ -112,5 +157,6 @@ export default async function BlogPost({ params }) {
 
       </div>
     </main>
+    </>
   )
 }

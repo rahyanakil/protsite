@@ -25,7 +25,52 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
-const BASE_URL = 'https://rahyanakil.vercel.app'
+const BASE_URL = 'https://rahyanshamsi.com'
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': `${BASE_URL}/#person`,
+      name: 'Rahyan Shamsi Akil',
+      alternateName: 'Rahyan Akil',
+      jobTitle: 'Full-Stack Developer',
+      description: 'Full-Stack Developer specialising in Next.js, React, Node.js, and TypeScript. Based in Dhaka, Bangladesh.',
+      url: BASE_URL,
+      sameAs: [
+        'https://github.com/rahyanakil',
+        'https://www.linkedin.com/in/rahyanshamsi/',
+      ],
+      address: {
+        '@type': 'PostalAddress',
+        addressLocality: 'Dhaka',
+        addressCountry: 'BD',
+      },
+      knowsAbout: [
+        'Next.js', 'React', 'Node.js', 'TypeScript', 'MongoDB',
+        'PostgreSQL', 'Express.js', 'Tailwind CSS', 'Framer Motion',
+      ],
+      alumniOf: {
+        '@type': 'CollegeOrUniversity',
+        name: 'Bangladesh Army International University of Science and Technology',
+        alternateName: 'BAIUST',
+      },
+      worksFor: {
+        '@type': 'Organization',
+        name: 'Prime Tech Solution Limited',
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${BASE_URL}/#website`,
+      url: BASE_URL,
+      name: 'Rahyan Akil — Portfolio',
+      description: 'Portfolio of Rahyan Shamsi Akil — Full-Stack Developer',
+      author: { '@id': `${BASE_URL}/#person` },
+    },
+  ],
+}
 
 export const metadata = {
   metadataBase: new URL(BASE_URL),
@@ -42,27 +87,24 @@ export const metadata = {
   ],
   authors: [{ name: 'Rahyan Shamsi Akil', url: BASE_URL }],
   creator: 'Rahyan Shamsi Akil',
+  alternates: {
+    canonical: '/',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: BASE_URL,
+    url: '/',
     siteName: 'Rahyan Akil — Portfolio',
     title: 'Rahyan Akil | Full-Stack Developer',
     description:
       'Full-Stack Developer specialising in Next.js, React, Node.js & TypeScript. Building fast, beautiful web applications. Open to work.',
-    images: [{
-      url: '/og-image.jpg',
-      width: 1200,
-      height: 630,
-      alt: 'Rahyan Akil — Full-Stack Developer Portfolio',
-    }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Rahyan Akil | Full-Stack Developer',
     description: 'Full-Stack Developer — Next.js, React, Node.js, TypeScript. Open to work.',
     creator: '@Rahyan_Akil4',
-    images: ['/og-image.jpg'],
+    images: ['/opengraph-image'],
   },
   robots: {
     index: true,
@@ -80,13 +122,16 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning className="dark">
       <head>
-        {/* Theme init — runs before hydration to prevent flash */}
         <Script
           id="theme-init"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `(function(){var t=localStorage.getItem('theme')||(window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light');document.documentElement.classList.toggle('dark',t==='dark');})()`,
           }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       </head>
       <body
